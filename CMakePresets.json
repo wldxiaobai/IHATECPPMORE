@@ -31,8 +31,10 @@
                 "strategy": "external"
             },
             "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug"
-            }
+              "CMAKE_BUILD_TYPE": "Debug",
+              "ENABLE_DEBUG": "ON",
+              "MCG_DEBUG_LEVEL": "2"
+          }
         },
         {
             "name": "x64-release",
@@ -61,41 +63,6 @@
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Release"
             }
-        },
-        {
-            "name": "local-debug",
-            "displayName": "Local Debug (Ninja)",
-            "description": "Configure with ENABLE_DEBUG=ON, Ninja generator, Debug build type",
-            "generator": "Ninja",
-            "binaryDir": "${sourceDir}/build/${presetName}",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "ENABLE_DEBUG": "ON",
-                "MCG_DEBUG_LEVEL": "2"
-            }
-        },
-        {
-            "name": "local-release",
-            "displayName": "Local Release (Ninja)",
-            "generator": "Ninja",
-            "binaryDir": "${sourceDir}/build/${presetName}",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Release",
-                "ENABLE_DEBUG": "OFF",
-                "MCG_DEBUG_LEVEL": "0"
-            }
-        }
-    ],
-    "buildPresets": [
-        {
-            "name": "build-local-debug",
-            "configurePreset": "local-debug",
-            "configuration": "Debug"
-        },
-        {
-            "name": "build-local-release",
-            "configurePreset": "local-release",
-            "configuration": "Release"
         }
     ]
 }

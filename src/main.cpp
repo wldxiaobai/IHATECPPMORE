@@ -1,8 +1,10 @@
 #include <chrono>
 #include <iostream>
+#include <sstream>
 #include <stdexcept>
 #include <atomic>
 #include <string>
+#include <iomanip>
 
 #include "debug_config.h"
 #include "delegate.h"
@@ -128,8 +130,18 @@ int main(int argc, char* argv[])
 			cf_draw_push();
 			cf_draw_translate(-half_width, half_height);
 
+			std::stringstream ss;
+			auto now = std::chrono::steady_clock::now();
+			auto held = now - esc_down_start;
+			double held_seconds = std::chrono::duration_cast<std::chrono::duration<double>>(held).count();
+			double threshold_seconds = std::chrono::duration_cast<std::chrono::duration<double>>(esc_hold_threshold).count();
+			ss << "hold ESC to exit ("
+				<< std::fixed << std::setprecision(1) << held_seconds
+				<< " / " << threshold_seconds << "s)";
+			std::string s = ss.str();
+
 			cf_draw_push_color(cf_color_white());
-			cf_draw_text("exiting...", cf_v2(10.0f, -16.0f), -1);
+			cf_draw_text(s.c_str(), cf_v2(10.0f, -16.0f), -1);
 			cf_draw_pop_color();
 
 			cf_draw_pop();

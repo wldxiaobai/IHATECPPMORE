@@ -8,7 +8,6 @@ void RenderBaseObjectCollisionDebug(const BaseObject* obj) noexcept
     if (!obj) return;
 
     const CF_ShapeWrapper& s = obj->GetShape();
-    const CF_V2 pos = obj->GetPosition();
 
     // 使用红色并保存绘制状态
     cf_draw_push();
@@ -23,8 +22,6 @@ void RenderBaseObjectCollisionDebug(const BaseObject* obj) noexcept
         CF_V2 p2{ a.max.x, a.min.y };
         CF_V2 p3{ a.max.x, a.max.y };
         CF_V2 p4{ a.min.x, a.max.y };
-        // 将 shape 坐标与对象位置叠加（与原始项目约定保持一致）
-        p1 += pos; p2 += pos; p3 += pos; p4 += pos;
         cf_draw_line(p1, p2, 0.0f);
         cf_draw_line(p2, p3, 0.0f);
         cf_draw_line(p3, p4, 0.0f);
@@ -35,14 +32,14 @@ void RenderBaseObjectCollisionDebug(const BaseObject* obj) noexcept
     {
         const CF_Circle& c = s.u.circle;
         // cf_draw_circle2(center, radius, angle)
-        cf_draw_circle2(c.p + pos, c.r, 0.0f);
+        cf_draw_circle2(c.p, c.r, 0.0f);
         break;
     }
     case CF_SHAPE_TYPE_CAPSULE:
     {
         const CF_Capsule& cap = s.u.capsule;
-        CF_V2 a = cap.a + pos;
-        CF_V2 b = cap.b + pos;
+        CF_V2 a = cap.a;
+        CF_V2 b = cap.b;
         float r = cap.r;
 
         // 绘制中轴线
@@ -74,8 +71,8 @@ void RenderBaseObjectCollisionDebug(const BaseObject* obj) noexcept
         int n = poly.count;
         if (n > 1) {
             for (int i = 0; i < n; ++i) {
-                CF_V2 p0 = poly.verts[i] + pos;
-                CF_V2 p1 = poly.verts[(i + 1) % n] + pos;
+                CF_V2 p0 = poly.verts[i];
+                CF_V2 p1 = poly.verts[(i + 1) % n];
                 cf_draw_line(p0, p1, 0.0f);
             }
         }

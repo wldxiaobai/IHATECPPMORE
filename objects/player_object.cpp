@@ -13,6 +13,9 @@ void PlayerObject::Start()
 
     // 可选：初始化位置（根据需要调整），例如屏幕中心附近
     SetPosition(cf_v2(0.0f, 0.0f));
+
+    Scale(0.5f);
+	SetPivot(1,1);
 }
 
 void PlayerObject::Update()
@@ -53,5 +56,5 @@ void PlayerObject::Update()
     if (cf_key_down(CF_KEY_E)) {
 		angle -= PI / 60.0f; // 每帧顺时针旋转 3 度
     }
-	SpriteRotate(angle);
+	Rotate(angle);
 }

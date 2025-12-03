@@ -7,7 +7,7 @@ void TestObject::Start()
 	// 仅设置贴图路径，其他参数使用默认值
 	SpriteSetSource("/sprites/plate.png", 1);
 	// 可选：初始化位置（根据需要调整）
-	SetPosition(cf_v2(0.0f, -100.0f));
+	SetPosition(cf_v2(0.0f, -200.0f));
 	// 设置碰撞箱为固体
 	SetColliderType(ColliderType::SOLID);
 }

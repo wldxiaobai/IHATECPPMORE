@@ -5,6 +5,7 @@
 #if COLLISION_DEBUG
 #include <iomanip>
 #include <cmath>
+// 辅助：打印形状的 world-space 信息，用于调试碰撞细节
 static void dump_shape_world(const CF_ShapeWrapper& s) noexcept {
 	switch (s.type) {
 	case CF_SHAPE_TYPE_AABB:
@@ -32,21 +33,21 @@ static void dump_shape_world(const CF_ShapeWrapper& s) noexcept {
 }
 #endif
 
-// 防御性：规范化 manifold.n 并修正 depth 与 contact_points（确保数值稳定）
+// 清理并规范化碰撞流中产生的 manifold，保证数值与语义安全（供后续处理使用）
 static void normalize_and_clamp_manifold(CF_Manifold& m) noexcept
 {
-	// 限制 count 到合法范围 [0,2]
+	// 将 count 限定在 [0,2]
 	if (m.count < 0) m.count = 0;
 	if (m.count > 2) m.count = 2;
 
-	// 修正 depth（非负且非 NaN/Inf）
+	// 确保 penetration depth 非 NaN/Inf 且不为负
 	for (int i = 0; i < 2; ++i) {
 		if (std::isnan(m.depths[i]) || std::isinf(m.depths[i]) || m.depths[i] < 0.0f) {
 			m.depths[i] = 0.0f;
 		}
 	}
 
-	// 清理非法接触点坐标
+	// 清理 contact points 中的非法值
 	for (int i = 0; i < 2; ++i) {
 		CF_V2& cp = m.contact_points[i];
 		if (std::isnan(cp.x) || std::isnan(cp.y) || std::isinf(cp.x) || std::isinf(cp.y)) {
@@ -54,7 +55,7 @@ static void normalize_and_clamp_manifold(CF_Manifold& m) noexcept
 		}
 	}
 
-	// 规范化法线；若长度过小则置零向量
+	// 归一化法线向量，若不可用则置零
 	float len = v2math::length(m.n);
 	if (std::isnan(len) || std::isinf(len) || len <= 1e-6f) {
 		m.n = cf_v2(0.0f, 0.0f);
@@ -65,7 +66,7 @@ static void normalize_and_clamp_manifold(CF_Manifold& m) noexcept
 	}
 }
 
-// 将局部 shape 平移 delta，返回新副本（用于在 narrowphase 前得到 world-space shape）
+// 将局部空间的 shape 平移至 world-space（不做旋转），用于 narrowphase 前的预处理
 static CF_ShapeWrapper translate_shape_world(const CF_ShapeWrapper& s, const CF_V2& delta) noexcept
 {
 	CF_ShapeWrapper out = s;
@@ -92,7 +93,7 @@ static CF_ShapeWrapper translate_shape_world(const CF_ShapeWrapper& s, const CF_
 	return out;
 }
 
-// 将 world-space shape 转为一个覆盖它的 AABB（用于 broadphase 网格映射）
+// 将 shape 转换为 AABB，用于 broadphase 网格索引或快速剔除
 static CF_Aabb shape_wrapper_to_aabb(const CF_ShapeWrapper& s) noexcept
 {
 	CF_Aabb aabb{};
@@ -145,20 +146,20 @@ static CF_Aabb shape_wrapper_to_aabb(const CF_ShapeWrapper& s) noexcept
 	return aabb;
 }
 
+// 使用 Cute Framework 的碰撞函数计算 world-space shape 的碰撞信息，
+// 并对结果进行基础校验和归一化，返回是否发生碰撞。
 static bool shapes_collide_world(const CF_ShapeWrapper& A, const CF_ShapeWrapper& B, CF_Manifold* out_manifold) noexcept
 {
 	CF_Manifold m{};
 	cf_collide(&A.u, nullptr, A.type, &B.u, nullptr, B.type, &m);
 
-	// 仅当 manifold 有有效接触点时认为发生碰撞
+	// 如果没有接触点则认为未碰撞
 	if (m.count <= 0) return false;
 
-	// 规范化并修正深度
-	// 保证深度非负
+	// 规范化 manifold 数据，防止数值异常
 	for (int i = 0; i < 2; ++i) {
 		if (m.depths[i] < 0.0f) m.depths[i] = 0.0f;
 	}
-	// 规范化法线
 	float len = v2math::length(m.n);
 	if (len > 1e-6f) {
 		m.n.x /= len;
@@ -172,14 +173,14 @@ static bool shapes_collide_world(const CF_ShapeWrapper& A, const CF_ShapeWrapper
 	return true;
 }
 
-// 注册：将物体及其 BasePhysics 指针加入检测集合（Create 后调用）
+// 注意：PhysicsSystem 通过 ObjToken 管理 BasePhysics 的注册与反注册，从而在 Step() 中统一进行碰撞检测与回调。
 void PhysicsSystem::Register(const ObjManager::ObjToken& token, BasePhysics* phys) noexcept
 {
 	if (!phys) return;
 	uint64_t key = make_key(token);
 	auto it = token_map_.find(key);
 	if (it != token_map_.end()) {
-		// 已存在：更新指针（通常不会发生）
+		// 如果已存在条目，更新指针与 token
 		entries_[it->second].physics = phys;
 		entries_[it->second].token = token;
 		return;
@@ -191,7 +192,7 @@ void PhysicsSystem::Register(const ObjManager::ObjToken& token, BasePhysics* phy
 	token_map_[key] = entries_.size() - 1;
 }
 
-// 注销：在对象销毁前调用（Destroy 前调用，以避免回调访问已销毁对象）
+// 反注册：将条目从 entries_ 中移除并维护映射一致性
 void PhysicsSystem::Unregister(const ObjManager::ObjToken& token) noexcept
 {
 	uint64_t key = make_key(token);
@@ -213,7 +214,7 @@ void PhysicsSystem::Step(float cell_size) noexcept
 	events_.clear();
 	if (entries_.empty()) return;
 
-	// 构建空间哈希（格子映射）
+	// 清空上次 frame 使用过的网格 bucket，以便复用容器
 	for (uint64_t k : grid_keys_used_) {
 		auto git = grid_.find(k);
 		if (git != grid_.end()) {
@@ -228,7 +229,18 @@ void PhysicsSystem::Step(float cell_size) noexcept
 		BasePhysics* p = entries_[i].physics;
 		if (!p) continue;
 
-		CF_ShapeWrapper ws = translate_shape_world(p->get_shape(), p->get_position());
+		// 获取 shape 并根据配置决定是否需要将其视为已经是 world-space（use_world_shape_）
+		CF_ShapeWrapper s = p->get_shape();
+		CF_ShapeWrapper ws;
+		if (p->is_world_shape_enabled()) {
+			// 物理组件已经提供 world-space 的 shape
+			ws = s;
+		}
+		else {
+			// 将 local shape 平移到 world-space
+			ws = translate_shape_world(s, p->get_position());
+		}
+
 		world_shapes_[i] = ws;
 		CF_Aabb waabb = shape_wrapper_to_aabb(ws);
 
@@ -237,36 +249,32 @@ void PhysicsSystem::Step(float cell_size) noexcept
 		int32_t gx1 = static_cast<int32_t>(std::floor(waabb.max.x / cell_size));
 		int32_t gy1 = static_cast<int32_t>(std::floor(waabb.max.y / cell_size));
 
-		// 遍历覆盖格子并插入索引
+		// 将条目放入覆盖到的网格桶中，用于后续的邻域检测
 		for (int32_t gx = gx0; gx <= gx1; ++gx) {
 			for (int32_t gy = gy0; gy <= gy1; ++gy) {
 				uint64_t gkey = grid_key(gx, gy);
 				auto it = grid_.find(gkey);
 				if (it == grid_.end()) {
-					// 新桶：创建并预留
 					auto res = grid_.emplace(gkey, std::vector<size_t>());
 					it = res.first;
 					it->second.reserve(4);
-					// 记录被使用的键
 					grid_keys_used_.push_back(gkey);
 				}
 				else {
-					// 确保仅记录一次
 					if (it->second.empty()) grid_keys_used_.push_back(gkey);
 				}
 				it->second.push_back(i);
 			}
 		}
 
-		// cache grid coord for neighbor sweep 使用 aabb 中心作为参考格子
+		// 缓存该条目的网格坐标（用于邻域遍历）
 		float cx = (waabb.min.x + waabb.max.x) * 0.5f;
 		float cy = (waabb.min.y + waabb.max.y) * 0.5f;
 		entries_[i].grid_x = static_cast<int32_t>(std::floor(cx / cell_size));
 		entries_[i].grid_y = static_cast<int32_t>(std::floor(cy / cell_size));
 	}
 
-	// 对每个对象，只与自身格子及邻格的对象比较（避免重复对比）
-	// 预留 events_ 避免重复分配
+	// 进行 narrowphase：对每个条目检查邻域桶内可能的碰撞对并产生事件
 	events_.reserve(entries_.size());
 
 	for (size_t i = 0; i < entries_.size(); ++i) {
@@ -286,11 +294,11 @@ void PhysicsSystem::Step(float cell_size) noexcept
 					BasePhysics* pb = b.physics;
 					if (!pb) continue;
 
-					// 过滤 VOID
+					// 忽略 VOID 类型的碰撞器
 					if (pa->get_collider_type() == ColliderType::VOID || pb->get_collider_type() == ColliderType::VOID)
 						continue;
 
-					// --- narrowphase: 使用缓存的 world_shapes_ 避免重复 translate 与拷贝 ---
+					// 使用 world_shapes_ 进行 narrowphase 碰撞检测
 					CF_Manifold m{};
 					const CF_ShapeWrapper& aw = world_shapes_[i];
 					const CF_ShapeWrapper& bw = world_shapes_[j];
@@ -308,7 +316,7 @@ void PhysicsSystem::Step(float cell_size) noexcept
 		}
 	}
 
-	// 合并同一对对象的 manifold：保留最多 2 个不同 contact points
+	// 合并同一对的多个 contact，使每对最终最多包含两个接触点，便于上层处理
 	if (!events_.empty()) {
 		merged_map_.clear();
 		merged_order_.clear();
@@ -329,12 +337,11 @@ void PhysicsSystem::Step(float cell_size) noexcept
 				continue;
 			}
 
-			// 合并 manifold: 将 ev.manifold 的 contact 点合并到已有 manifold（最多 2 个不同点）
+			// 合并 manifold：将接触点与穿透深度合并至最多两个 contact
 			CF_Manifold& dst = it->second.manifold;
 			const CF_Manifold& src = ev.manifold;
-			const float eps_sq = 1e-4f; // 两点被视为相同的距离阈值平方
+			const float eps_sq = 1e-4f;
 
-			// 遍历源 contact 点
 			for (int si = 0; si < src.count && dst.count < 2; ++si) {
 				const CF_V2& sp = src.contact_points[si];
 				bool found = false;
@@ -343,31 +350,29 @@ void PhysicsSystem::Step(float cell_size) noexcept
 					float dx = sp.x - dp.x;
 					float dy = sp.y - dp.y;
 					if (dx * dx + dy * dy <= eps_sq) {
-						// 相同 contact -> 保留更大 penetration depth
 						if (src.depths[si] > dst.depths[di]) dst.depths[di] = src.depths[si];
 						found = true;
 						break;
 					}
 				}
 				if (!found && dst.count < 2) {
-					// 将新的 contact 放到第一个空槽
 					dst.contact_points[dst.count] = sp;
 					dst.depths[dst.count] = src.depths[si];
 					dst.count++;
 				}
 			}
 
-			// 合并法线：以 penetration depth 加权（简单合并）
+			// 合并法线方向（加权平均）
 			if (v2math::length(dst.n) > 1e-6f || v2math::length(src.n) > 1e-6f) {
 				dst.n.x = dst.n.x * 0.5f + src.n.x * 0.5f;
 				dst.n.y = dst.n.y * 0.5f + src.n.y * 0.5f;
 			}
 
-			// 确保数值稳定
+			// 规范化合并结果
 			normalize_and_clamp_manifold(dst);
 		}
 
-		// 将合并后的结果按原始首次出现顺序重建 events_
+		// 将合并结果替换 events_
 		std::vector<CollisionEvent> merged_events;
 		merged_events.reserve(merged_map_.size());
 		for (uint64_t key : merged_order_) {
@@ -376,7 +381,7 @@ void PhysicsSystem::Step(float cell_size) noexcept
 		events_.swap(merged_events);
 	}
 
-	// 统一派发：使用上一帧保存的数据区分 Enter / Stay / Exit
+	// 使用事件产生 Enter/Stay/Exit 回调序列
 	current_pairs_.clear();
 	current_pairs_.reserve(events_.size() * 2);
 
@@ -463,6 +468,7 @@ void PhysicsSystem::Step(float cell_size) noexcept
 		}
 	}
 
+	// 对上帧存在但本帧消失的对触发 Exit 回调
 	for (const auto& prev_pair : prev_collision_pairs_) {
 		uint64_t key = prev_pair.first;
 		if (current_pairs_.find(key) == current_pairs_.end()) {

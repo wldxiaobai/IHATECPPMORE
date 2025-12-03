@@ -2,23 +2,24 @@
 
 #include <cstring>
 #include <algorithm>
-#include <iostream>   // 新增：用于调试输出
+#include <iostream>   // 错误与诊断输出
 #include <string>
 
 #include "debug_config.h"
 #include "cute_png_cache.h"      // CF_Png + png_cache API
 #include "cute_file_system.h"    // CF_Path + fs_get_backend_specific_error_message
-#include "cute_result.h" // 如需 cf_is_error / cf_result helpers
+#include "cute_result.h" // 辅助的 CF_Result / 错误检查
 
-// 根据 debug_config.h 中的 PNG_LOAD_DEBUG 控制加载时的调试输出
+// PNG 加载调试日志开关（由 debug_config.h 中的 PNG_LOAD_DEBUG 控制）
 #if PNG_LOAD_DEBUG
 #define PNG_LOAD_LOG(x) do { std::cerr << x; } while(0)
 #else
 #define PNG_LOAD_LOG(x) do {} while(0)
 #endif
 
-extern std::atomic<int> g_frame_count; // 使用全局帧计数
+extern std::atomic<int> g_frame_count; // 全局帧计数（用于动画时间）
 
+// 构造：仅记录路径和帧配置，不做耗时 IO 操作（懒加载设计）
 PngSprite::PngSprite(const std::string& path, int frameCount, int frameDelay) noexcept
     : m_path(path)
     , m_frameCount(frameCount > 0 ? frameCount : 1)
@@ -26,23 +27,23 @@ PngSprite::PngSprite(const std::string& path, int frameCount, int frameDelay) no
     , m_image{ 0 }
     , m_loaded(false)
 {
-    // 这里保持延迟加载（不要在构造中进行磁盘 IO）
+    // 资源加载采用懒惰策略：构造时不执行磁盘 IO
 }
 
 PngSprite::~PngSprite()
 {
-    // 确保析构时清理资源；Unload() 已标注 noexcept
+    // 析构时确保资源已被释放
     Unload();
 }
 
+// Load：尝试使用多种路径策略加载 PNG 资源，使用 png_cache 做缓存管理。
+// 成功时设置 m_loaded 并保留 CF_Png 句柄供后续帧提取使用。
 bool PngSprite::Load()
 {
     if (m_loaded) return true;
 
-    // 诊断日志：记录尝试加载的原始路径 
     PNG_LOAD_LOG("[PngSprite] Attempting to load PNG: '" << m_path << "'\n");
 
-    // 首次尝试：直接用当前路径
     CF_Png img = cf_png_defaults();
     CF_Result res = Cute::png_cache_load(m_path.c_str(), &img);
     if (!cf_is_error(res) && img.pix) {
@@ -62,8 +63,8 @@ bool PngSprite::Load()
         }
     }
 
-    // 如果失败，尝试常见变体并记录
-    // 1) 去掉前导 '/'（如果有）
+    // 失败时尝试以下回退路径策略以提升资源加载的容错性：
+    // 1) 去掉开头的 '/' 之后重试
     if (!m_path.empty() && m_path.front() == '/') {
         std::string p = m_path.substr(1);
         PNG_LOAD_LOG("[PngSprite] Primary load failed, trying without leading slash: '" << p << "'\n");
@@ -73,7 +74,6 @@ bool PngSprite::Load()
             m_image = tmp;
             if (m_frameCount <= 0) m_frameCount = 1;
             m_loaded = true;
-            // 同步 m_path 为实际可用路径，便于后续调试
             m_path = p;
             PNG_LOAD_LOG("[PngSprite] Loaded using path: '" << m_path << "'\n");
             return true;
@@ -89,11 +89,10 @@ bool PngSprite::Load()
         }
     }
 
-    // 2) 使用可执行/基础目录拼接绝对路径（在未挂载或挂载失败的场景下有用）
+    // 2) 以程序基目录拼接绝对路径重试
     Cute::CF_Path base = Cute::fs_get_base_directory();
     base.normalize();
     std::string base_s = base.c_str();
-    // 如果 m_path 已经以 '/' 开始，直接拼接 base + m_path，否则加 '/' 再拼
     std::string full = base_s + (m_path.empty() || m_path.front() != '/' ? std::string("/") + m_path : m_path);
     PNG_LOAD_LOG("[PngSprite] Trying absolute path: '" << full << "'\n");
     {
@@ -118,7 +117,7 @@ bool PngSprite::Load()
         }
     }
 
-    // 3) 如果项目中资源位于 base/content/...，也尝试 base + "/content" + m_path
+    // 3) 尝试 base/content/... 路径以兼容轻量资源组织约定
     std::string full_content = base_s + "/content" + (m_path.empty() || m_path.front() != '/' ? std::string("/") + m_path : m_path);
     PNG_LOAD_LOG("[PngSprite] Trying base/content path: '" << full_content << "'\n");
     {
@@ -143,7 +142,7 @@ bool PngSprite::Load()
         }
     }
 
-    // 全部尝试失败：保持无载入状态并返回 false
+    // 所有策略均失败则返回 false
     PNG_LOAD_LOG("[PngSprite] Failed to load PNG. Tried paths:\n"
         << "  1) " << m_path << "\n"
         << "  2) " << (m_path.size() && m_path.front() == '/' ? m_path.substr(1) : std::string("(n/a)")) << "\n"
@@ -152,6 +151,7 @@ bool PngSprite::Load()
     return false;
 }
 
+// Unload：释放已加载的 png_cache 资源，保证可以多次 Load/Unload
 void PngSprite::Unload() noexcept
 {
     if (m_loaded)
@@ -168,11 +168,10 @@ int PngSprite::FrameCount() const noexcept { return m_frameCount; }
 int PngSprite::FrameDelay() const noexcept { return m_frameDelay; }
 void PngSprite::SetFrameDelay(int delay) noexcept { m_frameDelay = (delay > 0 ? delay : 1); }
 
-// 新增实现
+// SetPath：设置资源路径并在路径改变时卸载旧资源以便下次访问重载新资源
 void PngSprite::SetPath(const std::string& path) noexcept
 {
     if (m_path == path) return;
-    // 路径变更，卸载已有资源以避免残留
     Unload();
     m_path = path;
 }
@@ -190,11 +189,12 @@ bool PngSprite::HasPath(std::string* out_path) const noexcept
     return has;
 }
 
+// 提取指定帧：若尚未加载会触发懒加载
 PngFrame PngSprite::ExtractFrame(int index) const
 {
     if (!m_loaded)
     {
-        // 尝试延迟加载（通常在主线程）
+        // 懒加载以避免在构造期间进行 IO
         const_cast<PngSprite*>(this)->Load();
     }
 
@@ -205,6 +205,7 @@ PngFrame PngSprite::ExtractFrame(int index) const
     return ExtractFrameFromImage(m_image, idx, m_frameCount);
 }
 
+// 获取当前帧（基于全局帧计数），适用于常规动画播放
 PngFrame PngSprite::GetCurrentFrame() const
 {
     if (!m_loaded)
@@ -220,7 +221,7 @@ PngFrame PngSprite::GetCurrentFrame() const
     return ExtractFrameFromImage(m_image, idx, m_frameCount);
 }
 
-// 新增：按自定义总帧数（例如竖排帧数）返回当前帧
+// 支持自定义总帧数的当前帧获取（适用于多行/分片图集）
 PngFrame PngSprite::GetCurrentFrameWithTotal(int totalFrames) const
 {
     if (!m_loaded) const_cast<PngSprite*>(this)->Load();
@@ -232,7 +233,6 @@ PngFrame PngSprite::GetCurrentFrameWithTotal(int totalFrames) const
     return ExtractFrameFromImage(m_image, idx, totalFrames);
 }
 
-// 新增：按自定义总帧数提取指定帧索引
 PngFrame PngSprite::ExtractFrameWithTotal(int index, int totalFrames) const
 {
     if (!m_loaded) const_cast<PngSprite*>(this)->Load();
@@ -243,6 +243,7 @@ PngFrame PngSprite::ExtractFrameWithTotal(int index, int totalFrames) const
     return ExtractFrameFromImage(m_image, idx, totalFrames);
 }
 
+// 从 CF_Png 图像中按垂直帧数拆分并复制出单帧像素数据（返回 PngFrame）
 PngFrame PngSprite::ExtractFrameFromImage(const CF_Png& src, int index, int totalFrames) const
 {
     PngFrame out;

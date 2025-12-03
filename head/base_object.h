@@ -4,14 +4,19 @@
 #include <string>
 #include <type_traits>
 #include <utility>
-#include <vector> // 新增：用于多边形便捷接口
-#include <iostream> // 新增：用于调试输出
-#include <cmath> // 新增：fabs 等
+#include <vector> // 用于多边形顶点数据传递
+#include <iostream> // 错误/诊断输出
+#include <cmath> // fabs
 
 #include "obj_manager.h"
 #include "debug_config.h"
 
-// 前向声明：在类内会调用此函数，具体实现位于 src/base_object_debug.cpp
+// BaseObject 是面向使用者的游戏对象基类，整合渲染（PngSprite）与物理（BasePhysics）。
+// 使用说明：
+// - 继承 BaseObject 并重写 Start()/Update()/OnCollisionEnter/Stay/Exit/OnDestroy 以实现对象行为。
+// - 通过 ObjManager 创建/销毁对象以获得 ObjToken；也可以直接使用指针 API（注意生命周期管理）。
+// - 提供统一的 Sprite 接口，方便设置贴图源、帧控制、翻转、枢轴及自动基于贴图设置碰撞箱。
+// - 提供碰撞回调机制（Enter/Stay/Exit）以便在物理系统检测到碰撞事件时被通知。
 class BaseObject;
 void RenderBaseObjectCollisionDebug(const BaseObject* obj) noexcept;
 
@@ -20,34 +25,34 @@ public:
     BaseObject() noexcept
         : BasePhysics(), PngSprite("", 1, 1)
     {
+        // 初始化位置/速度/力与精灵帧率，确保默认状态可直接使用
         set_position(CF_V2{ 0.0f, 0.0f });
         set_velocity(CF_V2{ 0.0f, 0.0f });
         set_force(CF_V2{ 0.0f, 0.0f });
-        // 确保 PngSprite 的帧延迟与对象层面的设置保持一致
         SetFrameDelay(m_sprite_update_freq);
+        update_world_shape_flag();
     }
 
+    // 每帧引擎调用点：包含 Update()、物理运动与 debug 绘制
     void FramelyUpdate() noexcept
     {
-        Update(); //调用派生类的 Update 方法
+        Update(); // 用户实现的每帧逻辑
 
-        //每帧自动应用物理积分
+        // 应用力与速度更新位置
         ApplyForce();
         ApplyVelocity();
 
-        // 编译时控制：若定义了 BASEOBJECT_DEBUG_DRAW，DebugDraw 会执行实际绘制，
-        // 否则为内联空实现（编译期剔除）。
+        // 可选的调试绘制（由编译选项控制）
         DebugDraw();
 
-        // 保存上一帧位置，供 CCD / TOI / debug 使用（在 Update 之前）
+        // 记录上一帧位置（便于 CCD / 调试）
         m_prev_position = get_position();
     }
 
     virtual void Start(){}
     virtual void Update(){}
 
-    // 返回当前帧，使用对象层面的竖排帧数切片 PNG。
-    // 如果 m_vertical_frame_count <= 1 则退回到 PngSprite 的默认行为。
+    // 获取当前用于渲染的帧（考虑垂直图集的多行帧）
     PngFrame SpriteGetFrame() const
     {
         if (m_vertical_frame_count <= 1) {
@@ -56,55 +61,84 @@ public:
         return GetCurrentFrameWithTotal(m_vertical_frame_count);
     }
 
-    // ---- 竖排帧计数接口（可以在派生类或外部设置） ----
     int SpriteGetVerticalFrameCount() const noexcept { return m_vertical_frame_count; }
 
-    // ---- 每多少个游戏帧切换一次动画帧（对象层面，可单独设置） ----
-    // spriteUpdateFreq: 动画切换频率，单位为游戏帧数。值 <= 0 会被规范为 1。
+    // 控制精灵动画更新频率（以游戏帧为单位）
     void SpriteSetUpdateFreq(int freq) noexcept
     {
         m_sprite_update_freq = (freq > 0 ? freq : 1);
-        // 同步到 PngSprite 的帧延迟，以便 PngSprite 的 GetCurrentFrame* 系列使用该频率
         SetFrameDelay(m_sprite_update_freq);
     }
     int SpriteGetUpdateFreq() const noexcept { return m_sprite_update_freq; }
 
-    // ---- 贴图路径管理（委托到 PngSprite） ----
+    // 精灵资源接口：设置/清除路径并自动在有资源时注册到 DrawingSequence
     void SpriteSetSource(const std::string& path, int count, bool set_shape_aabb = true) noexcept;
     void SpriteClearPath() noexcept;
 
     bool SpriteHasPath(std::string* out_path = nullptr) const noexcept { return HasPath(out_path); }
 
-    // ---- 可见性与绘制深度 ----
-    // visible: 控制贴图与碰撞箱是否被视为可见（绘制/碰撞判定处需检查该值）
+    // 可见性/深度控制（用于统一渲染排序）
     void SetVisible(bool v) noexcept { m_visible = v; }
     bool IsVisible() const noexcept { return m_visible; }
 
-    // depth: 绘图序列中的层次，数值越大通常代表绘制越靠上（或按项目约定使用）
     void SetDepth(int d) noexcept { m_depth = d; }
     int GetDepth() const noexcept { return m_depth; }
 
-    // 旋转
-    float SpriteGetRotation() noexcept { return GetRotation(); }
-    void SpriteSetRotation(float rot) noexcept { SetRotation(rot); }
-    void SpriteRotate(float drot) noexcept { Rotate(drot); }
+    // 旋转/翻转/枢轴：精灵层与碰撞层可以选择性同步
+    float GetRotation() const noexcept { return PngSprite::GetSpriteRotation(); }
+    void SetRotation(float rot) noexcept
+    {
+        PngSprite::SetSpriteRotation(rot);
+        if (IsColliderRotate()) {
+            BasePhysics::set_rotation(PngSprite::GetSpriteRotation());
+            BasePhysics::mark_world_shape_dirty();
+        }
+    }
+    void Rotate(float drot) noexcept
+    {
+        PngSprite::RotateSprite(drot);
+        if (IsColliderRotate()) {
+            BasePhysics::set_rotation(PngSprite::GetSpriteRotation());
+            BasePhysics::mark_world_shape_dirty();
+        }
+    }
 
-    // 翻转
     bool SpriteGetFlipX() { return m_flip_x; }
     bool SpriteGetFlipY() { return m_flip_y; }
     void SpriteFlipX(bool x) { m_flip_x = x; }
     void SpriteFlipY(bool y) { m_flip_y = y; }
     void SpriteFlipX() { m_flip_x = !m_flip_x; }
     void SpriteFlipY() { m_flip_y = !m_flip_y; }
+	float GetScaleX() const noexcept { return m_scale_x; }
+    void ScaleX(float sx) noexcept { PngSprite::set_scale_x(sx); BasePhysics::scale_x(sx); m_scale_x = sx; }
+	float GetScaleY() const noexcept { return m_scale_y; }
+    void ScaleY(float sy) noexcept { PngSprite::set_scale_y(sy); BasePhysics::scale_y(sy); m_scale_y = sy; }
+    void Scale(float s) noexcept {
+		PngSprite::set_scale_x(s); BasePhysics::scale_x(s); m_scale_x = s;
+		PngSprite::set_scale_y(s); BasePhysics::scale_y(s); m_scale_y = s;
+	}
 
-	// 枢轴点
-	CF_V2 GetPivot() noexcept { return get_pivot(); }
-	void SetPivot(const CF_V2& p) noexcept {
-        TweakColliderWithPivot(p);
-        set_pivot(p); 
+    CF_V2 GetPivot() const noexcept { return PngSprite::get_pivot(); }
+	// 设置相对于贴图中心的枢轴点，例如 (0,0) 为中心，(1,1) 为右上角，(-1,-1) 为左下角
+    void SetPivot(float x_rel, float y_rel) noexcept {
+		float scale_x = GetScaleX();
+		float scale_y = GetScaleY();
+        Scale(1.0f);
+        auto frame = SpriteGetFrame();
+        float hw = frame.w / 2.0f;
+        float hh = frame.h / 2.0f;
+		CF_V2 p = CF_V2{ x_rel * hw, y_rel * hh };
+        PngSprite::set_pivot(p);
+        if (IsColliderApplyPivot()) {
+            TweakColliderWithPivot(p);
+            BasePhysics::set_pivot(p);
+            BasePhysics::mark_world_shape_dirty();
+        }
+		ScaleX(scale_x);
+		ScaleY(scale_y);
     }
 
-    // 统一接口：一次性设置贴图路径、竖排帧数、动画更新频率和绘制深度
+    // 组合的设置函数，便捷初始化精灵资源与属性
     void SpriteSetStats(const std::string& path, int vertical_frame_count, int update_freq, int depth, bool set_shape_aabb = true) noexcept
     {
         SpriteSetSource(path, vertical_frame_count, set_shape_aabb);
@@ -112,15 +146,20 @@ public:
         SetDepth(depth);
     }
 
-    // ---- 公开物理相关访问器，便于外部使用 ----
-    // 只读访问（委托到 BasePhysics）
+    // 控制碰撞器是否随精灵旋转与枢轴设置同步
+    bool IsColliderRotate() const noexcept { return m_isColliderRotate; }
+    void SetColliderRotate(bool v) noexcept { m_isColliderRotate = v; update_world_shape_flag(); }
+
+    bool IsColliderApplyPivot() const noexcept { return m_isColliderApplyPivot; }
+    void SetColliderApplyPivot(bool v) noexcept { m_isColliderApplyPivot = v; update_world_shape_flag(); }
+
+    // 将 BasePhysics 的常用接口以 PascalCase 暴露给上层，便于脚本/外部调用
     const CF_V2& GetPosition() const noexcept { return get_position(); }
     const CF_V2& GetVelocity() const noexcept { return get_velocity(); }
     const CF_V2& GetForce() const noexcept { return get_force(); }
     const CF_ShapeWrapper& GetShape() const noexcept { return get_shape(); }
     ColliderType GetColliderType() const noexcept { return get_collider_type(); }
 
-    // 可选写入/操作接口（委托到 BasePhysics）
     void SetPosition(const CF_V2& p) noexcept { set_position(p); }
     void SetVelocity(const CF_V2& v) noexcept { set_velocity(v); }
     void SetForce(const CF_V2& f) noexcept { set_force(f); }
@@ -129,22 +168,17 @@ public:
     void ApplyVelocity(float dt = 1) noexcept { apply_velocity(dt); }
     void ApplyForce(float dt = 1) noexcept { apply_force(dt); }
 
-    // 允许获取上一帧位置（用于简单防穿透逻辑或调试）
     const CF_V2& GetPrevPosition() const noexcept { return m_prev_position; }
 
-    // 允许派生类在 Start() 中设置碰撞形状与碰撞类型（包装 BasePhysics 的低级 API）
     void SetShape(const CF_ShapeWrapper& s) noexcept { set_shape(s); }
     void SetColliderType(ColliderType t) noexcept { set_collider_type(t); }
 
-    // ---- 为形状添加便捷初始化接口 ----
-    // 直接通过已有 CF_* 类型设置（最可靠）
+    // 便捷创建碰撞形状的接口
     void SetAabb(const CF_Aabb& a) noexcept { set_shape(CF_ShapeWrapper::FromAabb(a)); }
     void SetCircle(const CF_Circle& c) noexcept { set_shape(CF_ShapeWrapper::FromCircle(c)); }
     void SetCapsule(const CF_Capsule& c) noexcept { set_shape(CF_ShapeWrapper::FromCapsule(c)); }
     void SetPoly(const CF_Poly& p) noexcept { set_shape(CF_ShapeWrapper::FromPoly(p)); }
 
-    // 便捷方法：以对象当前位置为中心设置 AABB（宽度 = 2*half_w, 高度 = 2*half_h）
-    // 修改：改为创建“局部坐标”的 AABB（相对于对象中心），不再把 get_position() 写入 shape。
     void SetCenteredAabb(float half_w, float half_h) noexcept
     {
         CF_Aabb aabb{};
@@ -160,7 +194,6 @@ public:
 #endif
     }
 
-    // 便捷：以当前位置为中心设置 Circle（改为局部坐标）
     void SetCenteredCircle(float radius) noexcept
     {
         CF_Circle c{};
@@ -172,22 +205,16 @@ public:
 #endif
     }
 
-    // 便捷：以当前位置为中心设置 Capsule（方向通过 dir 指定，需为单位向量）
-    // 修改：生成以对象中心为基准的局部 capsule（a,b 为局部坐标）
-    // 这里做了端点顺序归一化：对于主要水平轴，保证 a.x <= b.x；对于主要竖直轴，保证 a.y <= b.y
     void SetCenteredCapsule(const CF_V2& dir, float half_length, float radius) noexcept
     {
 		CF_V2 dir_normalized = v2math::normalized(dir);
         CF_V2 a{ -dir_normalized.x * half_length, -dir_normalized.y * half_length };
         CF_V2 b{ dir_normalized.x * half_length,  dir_normalized.y * half_length };
 
-        // 端点排序：让 a 在“负方向”，b 在“正方向”（对齐数轴）
         if (std::fabs(dir_normalized.x) >= std::fabs(dir_normalized.y)) {
-            // 主要为水平向量：确保 a.x <= b.x
             if (a.x > b.x) std::swap(a, b);
         }
         else {
-            // 主要为竖直向量：确保 a.y <= b.y
             if (a.y > b.y) std::swap(a, b);
         }
 
@@ -200,8 +227,6 @@ public:
 #endif
     }
 
-    // 便捷：从局部顶点集合创建多边形（顶点以对象中心为基准）
-    // 已改为直接使用 localVerts（不要再加 get_position）
     void SetPolyFromLocalVerts(const std::vector<CF_V2>& localVerts) noexcept
     {
         CF_Poly p{};
@@ -221,11 +246,9 @@ public:
 #endif
     }
 
-    // 新增：碰撞回调分化
-    // 建议碰撞分发器（Collider / InstanceController）在检测到碰撞时调用 OnCollisionState 或直接调用 OnCollisionEnter/Stay/Exit。
     enum class CollisionPhase : int { Enter = 1, Stay = 0, Exit = -1 };
 
-    // 新增：状态形式的统一调度接口（便于从外部一次性传入状态）
+    // 统一的碰撞状态回调分发：上层可以覆写具体阶段的处理函数
     virtual void OnCollisionState(const ObjManager::ObjToken& other, const CF_Manifold& manifold, CollisionPhase phase) noexcept
     {
         switch (phase) {
@@ -241,13 +264,10 @@ public:
         }
     }
 
-    // 新增：分阶段回调（派生类直接覆写所需阶段）
     virtual void OnCollisionEnter(const ObjManager::ObjToken& other, const CF_Manifold& manifold) noexcept {}
     virtual void OnCollisionStay(const ObjManager::ObjToken& other, const CF_Manifold& manifold) noexcept {}
     virtual void OnCollisionExit(const ObjManager::ObjToken& other, const CF_Manifold& manifold) noexcept {}
 
-    // ---- Debug 绘制相关 API（由编译宏控制） ----
-    // 现在绘制控制由宏 BASEOBJECT_DEBUG_DRAW 决定（编译时启用/禁用），不再使用运行时 bool 开关。
 #if BASEOBJECT_DEBUG_DRAW
     void DebugDraw() const noexcept
     {
@@ -262,8 +282,6 @@ public:
     ~BaseObject() noexcept;
 
 private:
-    // 隐藏 BasePhysics 的原始小写 API，强制调用者使用 BaseObject 的 PascalCase 封装接口，统一命名风格。
-    // 在 private 部分使用 using 声明会将这些基类名的访问权限降为私有。
     using BasePhysics::get_position;
     using BasePhysics::set_position;
     using BasePhysics::get_velocity;
@@ -281,23 +299,23 @@ private:
 
 	void TweakColliderWithPivot(const CF_V2& pivot) noexcept;
 
-    // ---- 对象层面的贴图与动画控制参数 ----
-
-    // 竖排帧数，用于从 PNG 中切片当前帧
     int m_vertical_frame_count = 1;
     void SpriteSetVerticalFrameCount(int count) noexcept { m_vertical_frame_count = (count > 0 ? count : 1); }
 
-    // 每多少个游戏帧切换一次动画帧
     int m_sprite_update_freq = 1;
-
-    // 贴图可见性
     bool m_visible = true;
-
-    // 绘制深度
     int m_depth = 0;
-
-    // （已移除）运行时开关 m_debug_draw_enabled —— 改为编译时宏控制
-
-    // 新增：上一帧位置（用于简单防穿透/调试）
+    bool m_flip_x = false;
+    bool m_flip_y = false;
+	float m_scale_x = 1.0f;
+	float m_scale_y = 1.0f;
     CF_V2 m_prev_position = CF_V2{ 0.0f, 0.0f };
+
+    bool m_isColliderRotate = true;
+    bool m_isColliderApplyPivot = true;
+
+    void update_world_shape_flag() noexcept
+    {
+        BasePhysics::enable_world_shape(m_isColliderRotate || m_isColliderApplyPivot);
+    }
 };

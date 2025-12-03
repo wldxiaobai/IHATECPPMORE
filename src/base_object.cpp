@@ -1,8 +1,11 @@
 #include "base_object.h"
-#include "drawing_sequence.h" // 在 cpp 中包含，获得 DrawingSequence 的完整定义
+#include "drawing_sequence.h" // 在 C++ 文件中引用以便使用 DrawingSequence 接口
 #include <iostream>
 
-// 在实现文件中包含 InstanceController 以避免头文件循环依赖
+// BaseObject 的精灵资源与绘制注册相关逻辑：
+// - SpriteSetSource 在设置新路径时会注册/注销 DrawingSequence 以纳入统一的上传与绘制流程。
+// - SpriteClearPath 会卸载资源并从 DrawingSequence 中注销。
+// - TweakColliderWithPivot 用于在用户改变 pivot 时同步调整碰撞形状。
 #include "obj_manager.h"
 
 void BaseObject::SpriteSetSource(const std::string& path, int count, bool set_shape_aabb) noexcept
@@ -11,6 +14,7 @@ void BaseObject::SpriteSetSource(const std::string& path, int count, bool set_sh
     bool had = HasPath(&current_path);
     if (had && current_path == path)return;
     if (had) {
+        // 注销旧资源的绘制注册，释放 per-owner canvas 的引用
         DrawingSequence::Instance().Unregister(this);
     }
     PngSprite::ClearPath();
@@ -18,8 +22,10 @@ void BaseObject::SpriteSetSource(const std::string& path, int count, bool set_sh
     SpriteSetVerticalFrameCount(count);
     bool has = HasPath();
     if (has) {
+        // 注册到绘制序列，便于 DrawAll/BlitAll 处理
         DrawingSequence::Instance().Register(this);
         if (set_shape_aabb) {
+            // 如果需要，根据当前帧自动设置碰撞 AABB（以贴图中心为基准）
             PngFrame frame = SpriteGetFrame();
             if (frame.w > 0 && frame.h > 0) {
                 SetCenteredAabb(static_cast<float>(frame.w) * 0.5f, static_cast<float>(frame.h) * 0.5f);
@@ -37,6 +43,7 @@ void BaseObject::SpriteClearPath() noexcept
     }
 }
 
+// 当用户想要将 pivot 应用于碰撞器时，调整本地 shape 以将枢轴偏移应用到形状（便于渲染/碰撞对齐）
 void BaseObject::TweakColliderWithPivot(const CF_V2& pivot) noexcept
 {
     CF_ShapeWrapper shape = get_shape();
@@ -58,7 +65,6 @@ void BaseObject::TweakColliderWithPivot(const CF_V2& pivot) noexcept
 		}
         break;
 	default:
-		// 不支持的形状类型
 		std::cerr << "[BaseObject] TweakColliderWithPivot: Unsupported shape type " << static_cast<int>(shape.type) << std::endl;
 		break;
     }
@@ -67,6 +73,7 @@ void BaseObject::TweakColliderWithPivot(const CF_V2& pivot) noexcept
 
 BaseObject::~BaseObject() noexcept
 {
+    // 在销毁时通知 OnDestroy 并确保从绘制序列注销，释放与绘制相关的所有资源引用。
     OnDestroy();
     DrawingSequence::Instance().Unregister(this);
 }
