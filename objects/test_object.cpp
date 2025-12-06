@@ -39,7 +39,7 @@ void TestObject::Update()
 	}
 
 	// 当按住空格时，使该物体不可见
-	if (cf_key_down(CF_KEY_SPACE)) {
+	if (cf_key_down(CF_KEY_W)) {
 		SetVisible(false);
 	} else {
 		SetVisible(true);
