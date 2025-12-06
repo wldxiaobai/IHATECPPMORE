@@ -1,28 +1,27 @@
 # DrawingSequence
 
-说明
-- `DrawingSequence` 管理渲染序列的两阶段流程：上传阶段（DrawAll）与渲染阶段（BlitAll）。
-- 目标：统一处理每帧从对象获取像素、上传到 per-owner canvas，再在渲染阶段按确定顺序绘制到屏幕。
+## 概述  
+`DrawingSequence` 负责管理需要渲染的对象集合并提供两阶段渲染流水线：上传阶段（`DrawAll()`）与呈现阶段（`BlitAll()`）。设计目标是保证每帧像素数据上传（texture 更新）与最终绘制的顺序与一致性，降低 GPU 同步开销并支持 per-owner canvas 缓存。
 
-主要职责
-- 提供对象注册/注销接口 `Register(BaseObject*)` / `Unregister(BaseObject*)`，对象在拥有精灵资源时应注册到此系统。
-- `DrawAll()`（上传阶段）：
-  - 在主循环早期执行：为每个可见对象调用 `SpriteGetFrame()` 提取像素并上传到对应的 per-owner `CF_Canvas` 的目标纹理（不进行最终绘制）。
-  - 采用 per-owner canvas 缓存以避免重复创建纹理开销。
-- `BlitAll()`（渲染阶段）：
-  - 在渲染时执行：读取 `BaseObject` 的位置/旋转/翻转/枢轴等变换信息，并统一绘制各个 per-owner canvas 到屏幕，遵循约定的旋转与翻转顺序。
-- 线程/状态安全：
-  - 内部使用互斥 (`m_mutex`, `g_canvas_cache_mutex`) 保护注册表与 canvas 缓存以避免并发访问问题。
-- 绘制顺序：
-  - 按 `GetDepth()`（从小到大）与注册次序（reg_index）排序以保证确定性。
+## 核心职责
+- 管理注册（`Register(BaseObject*)`）与注销（`Unregister(BaseObject*)`）的对象集合。
+- 在 `DrawAll()` 中遍历注册对象，基于对象当前状态（visible/depth/frame/pivot/rotation/scale）提取像素并上传到各自的 per-owner `CF_Canvas`（或纹理缓存）。
+- 在 `BlitAll()` 中按深度与注册顺序绘制已上传的 canvas 到最终目标。
 
-关键接口
-- `static DrawingSequence& Instance()`：单例访问。
-- `void Register(BaseObject* obj)` / `void Unregister(BaseObject* obj)`。
-- `void DrawAll()`：上传所有对象像素到 per-owner canvas（应在渲染前早期调用）。
-- `void BlitAll()`：最终绘制到屏幕（在渲染阶段调用）。
+## 两阶段流程要点
+- DrawAll（上传阶段）
+  - 在主循环中应在逻辑更新之后调用（通常在 `ObjManager::UpdateAll()` 后），以保证上传的像素反映刚刚完成的逻辑变更（例如新贴图、frame 变化、pivot 修改）。
+  - 每个对象通过 `SpriteGetFrame()` 获取当前帧的 `PngFrame`，并更新其对应的 canvas/texture。
+  - 更新应尽量批量化或使用缓存以减少 GPU 纹理重建与内存分配。
+- BlitAll（呈现阶段）
+  - 在渲染线程/渲染阶段调用，读取已上传的 texture 并按顺序绘制到屏幕。
+  - 根据 `GetDepth()` 和注册顺序决定绘制顺序，确保层级关系可控。
 
-实现与注意事项
-- per-owner canvas 由文件内静态缓存维护（`g_canvas_cache`）；`Unregister` 会释放 canvas。
-- `DrawAll()` 会尝试创建/重建 canvas 以匹配当前帧的宽高，并调用 `cf_texture_update` 上传像素。
-- `BlitAll()` 在绘制时会在 `m_mutex` 上加锁以防止回调/注册表并发修改导致的不确定性；绘制主体用 try/catch 捕获异常并记录错误。
+## 并发与错误处理
+- DrawingSequence 可能维护互斥体（例如 `m_mutex` 或 `g_canvas_cache_mutex`）来保护 canvas 缓存与注册集合，避免多线程竞态。调用方应在跨线程访问时遵循约定。
+- 上传/删除等操作应尽量在主线程完成；若异步上传需保证引用生命周期与线程同步。
+- 在上传或 blit 时应捕获并记录异常/错误（如果适用），保证渲染阶段不会使主循环崩溃。
+
+## 实现注意
+- 使用 per-owner canvas 缓存（例如按 `BaseObject*` 缓存 `CF_Canvas`）能显著减少重复分配与纹理切换。
+- 深度排序：在 `BlitAll` 中应使用 `GetDepth()` 作为主要排序键，注册顺序作为次级键以保证可预测的渲染顺序.

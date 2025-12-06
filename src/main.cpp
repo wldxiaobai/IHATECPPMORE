@@ -49,8 +49,7 @@ int main(int argc, char* argv[])
 	}
 
 	// 使用 InstanceController 创建对象：现在返回 token（ObjectToken）
-	auto player_token = ObjManager::Instance().CreateImmediate<PlayerObject>();
-	auto test_token = ObjManager::Instance().CreateImmediate<TestObject>();
+	auto player_token = ObjManager::Instance().Create<PlayerObject>();
 
 	auto update_token = main_thread_on_update.add([]() {
 		ObjManager::Instance().UpdateAll();
