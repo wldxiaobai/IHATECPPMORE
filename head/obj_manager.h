@@ -58,29 +58,12 @@ public:
         return CreateImmediateFromUniquePtr(std::move(obj));
     }
 
-    // CreateDelayed: 在内部队列中保留一个工厂函数，实际对象会在下一次 UpdateAll() 时构造并 Start()。
-    template <typename T, typename... Args>
-    ObjToken CreateDelayed(Args&&... args)
-    {
-        static_assert(std::is_base_of<BaseObject, T>::value, "T must derive from BaseObject");
-        auto factory = [args_tuple = std::make_tuple(std::forward<Args>(args)...)]() mutable -> std::unique_ptr<BaseObject> {
-            return std::apply([](auto&&... unpacked) {
-                return std::make_unique<T>(std::forward<decltype(unpacked)>(unpacked)...);
-            }, std::move(args_tuple));
-        };
-        return CreateDelayedFromFactory(std::move(factory));
-    }
-
     // 通过 token 获取对象指针（可能返回 nullptr，如果 token 无效或对象已被销毁）
     BaseObject* Get(const ObjToken& token) noexcept;
     template <typename T>
     T* GetAs(const ObjToken& token) noexcept { return static_cast<T*>(Get(token)); }
 
     bool IsValid(const ObjToken& token) const noexcept;
-
-    // DestroyImmediate: 立即销毁指定对象（按指针或 token），会调用 OnDestroy 并释放资源。
-    void DestroyImmediate(BaseObject* ptr) noexcept;
-    void DestroyImmediate(const ObjToken& token) noexcept;
 
     // DestroyDelayed: 将销毁请求入队，实际删除在下一次 UpdateAll 时执行，避免在遍历时破坏容器。
     void DestroyDelayed(BaseObject* ptr) noexcept;
@@ -121,7 +104,6 @@ private:
 
     // 将 unique_ptr<BaseObject> 的对象纳入管理并在必要时调用 Start()，返回对应的 ObjToken。
     ObjToken CreateImmediateFromUniquePtr(std::unique_ptr<BaseObject> obj);
-    ObjToken CreateDelayedFromFactory(std::function<std::unique_ptr<BaseObject>()> factory);
 
     // 存储对象条目
     std::vector<Entry> objects_;
@@ -135,9 +117,6 @@ private:
     // 延迟销毁队列与去重集合（防止重复入队）
     std::vector<ObjToken> pending_destroys_;
     std::unordered_set<uint64_t> pending_destroy_set_; // compact key: ((uint64_t)index<<32)|generation
-
-    // 延迟创建队列
-    std::vector<PendingCreate> pending_creates_;
 
     // 当前存活对象计数
     size_t alive_count_ = 0;

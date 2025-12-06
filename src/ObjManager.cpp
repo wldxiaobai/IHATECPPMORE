@@ -80,29 +80,6 @@ ObjManager::ObjToken ObjManager::CreateImmediateFromUniquePtr(std::unique_ptr<Ba
     return ObjToken{ index, e.generation };
 }
 
-// 将延迟创建的 factory 入队，实际构造在 UpdateAll 中完成
-ObjManager::ObjToken ObjManager::CreateDelayedFromFactory(std::function<std::unique_ptr<BaseObject>()> factory)
-{
-    if (!factory) {
-        std::cerr << "[InstanceController] CreateDelayedFromFactory: null factory\n";
-        return ObjToken::Invalid();
-    }
-
-    uint32_t index = ReserveSlotForCreate();
-    Entry& e = objects_[index];
-    ++e.generation; // bump generation 以保证 token 独一无二
-    ObjToken token{ index, e.generation };
-
-    std::cerr << "[InstanceController] CreateDelayed: enqueue token(index=" << index << ", gen=" << e.generation << ")\n";
-
-    pending_creates_.emplace_back(PendingCreate{
-        index,
-        std::move(factory)
-        });
-
-    return token;
-}
-
 // 内部按索引立即销毁条目：调用 OnDestroy、反注册物理系统、释放资源并使 token 失效
 void ObjManager::DestroyEntryImmediate(uint32_t index) noexcept
 {
@@ -135,47 +112,6 @@ void ObjManager::DestroyEntryImmediate(uint32_t index) noexcept
     free_indices_.push_back(index);
 
     if (alive_count_ > 0) --alive_count_;
-}
-
-void ObjManager::DestroyImmediate(BaseObject* ptr) noexcept
-{
-    if (!ptr) return;
-    auto it = object_index_map_.find(ptr);
-    if (it != object_index_map_.end()) {
-        uint32_t index = it->second;
-        // 验证映射的一致性后销毁
-        if (index < objects_.size() && objects_[index].ptr.get() == ptr) {
-            DestroyEntryImmediate(index);
-            return;
-        }
-    }
-
-    // 若映射未命中，尝试线性查找（容错处理）
-    for (uint32_t i = 0; i < objects_.size(); ++i) {
-        Entry& e = objects_[i];
-        if (e.ptr && e.ptr.get() == ptr) {
-            DestroyEntryImmediate(i);
-            return;
-        }
-    }
-
-    std::cerr << "[InstanceController] DestroyImmediate: target not found at "
-        << static_cast<const void*>(ptr) << "\n";
-}
-
-void ObjManager::DestroyImmediate(const ObjToken& token) noexcept
-{
-    if (token.index >= objects_.size()) {
-        std::cerr << "[InstanceController] DestroyImmediate(token): invalid index " << token.index << "\n";
-        return;
-    }
-    Entry& e = objects_[token.index];
-    if (!e.alive || e.generation != token.generation) {
-        std::cerr << "[InstanceController] DestroyImmediate(token): token invalid or object not alive (index="
-            << token.index << ", gen=" << token.generation << ")\n";
-        return;
-    }
-    DestroyEntryImmediate(token.index);
 }
 
 void ObjManager::DestroyDelayed(BaseObject* ptr) noexcept
@@ -231,7 +167,6 @@ void ObjManager::DestroyAll() noexcept
     std::cerr << "[InstanceController] DestroyAll: destroying all objects (" << alive_count_ << ")\n";
 
     // 清理所有挂起的创建/销毁队列
-    pending_creates_.clear();
     pending_destroys_.clear();
     pending_destroy_set_.clear();
 
@@ -297,61 +232,5 @@ void ObjManager::UpdateAll() noexcept
 
         pending_destroys_.clear();
         pending_destroy_set_.clear();
-    }
-
-    // 4) 执行延迟创建队列：构造对象、Start()、注册物理系统
-    if (!pending_creates_.empty()) {
-        for (auto& pc : pending_creates_) {
-            uint32_t index = pc.index;
-            if (index >= objects_.size()) {
-                std::cerr << "[InstanceController] UpdateAll: pending create target index out of range: " << index << "\n";
-                continue;
-            }
-
-            Entry& e = objects_[index];
-            if (e.alive) {
-                std::cerr << "[InstanceController] UpdateAll: pending create target slot already occupied (index="
-                    << index << ")\n";
-                continue;
-            }
-
-            std::unique_ptr<BaseObject> obj;
-            try {
-                obj = pc.factory();
-            }
-            catch (...) {
-                std::cerr << "[InstanceController] UpdateAll: exception while creating deferred object for index="
-                    << index << "\n";
-                // 将 token 置为无效并回收 slot
-                ++e.generation;
-                free_indices_.push_back(index);
-                continue;
-            }
-
-            if (!obj) {
-                std::cerr << "[InstanceController] UpdateAll: factory returned nullptr for index=" << index << "\n";
-                ++e.generation;
-                free_indices_.push_back(index);
-                continue;
-            }
-
-            // 将构造好的对象放入 slot 并调用 Start()
-            BaseObject* raw = obj.get();
-            e.ptr = std::move(obj);
-            e.alive = true;
-            object_index_map_[raw] = index;
-            ++alive_count_;
-
-            std::cerr << "[InstanceController] UpdateAll: creating deferred object at " << static_cast<const void*>(raw)
-                << " (type: " << typeid(*raw).name() << ", index=" << index << ", gen=" << e.generation << ")\n";
-
-            raw->Start();
-
-            // 注册到物理系统
-            ObjManager::ObjToken tok{ index, e.generation };
-            PhysicsSystem::Instance().Register(tok, raw);
-        }
-
-        pending_creates_.clear();
     }
 }
