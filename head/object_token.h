@@ -3,17 +3,17 @@
 #include <cstdint>
 #include <limits>
 
-// ObjToken ÊÇ¶ÔÍĞ¹Ü¶ÔÏóµÄÇáÁ¿¾ä±ú£¨handle£©ÀàĞÍ£¬ÃæÏòÊ¹ÓÃÕßËµÃ÷£º
-// - Ê¹ÓÃ (index, generation) µÄ×éºÏÀ´°²È«ÒıÓÃ ObjManager ¹ÜÀíµÄ¶ÔÏó£¬±ÜÃâÂãÖ¸ÕëĞü¹ÒÎÊÌâ¡£
-// - µ±¶ÔÏó²Û±»»ØÊÕ²¢ÖØÓÃÊ±£¬generation »áµİÔöÒÔÊ¹¾ÉµÄ token Ê§Ğ§£»Õâ±ÈÂãÖ¸Õë¸ü°²È«£¬µ«ÈÔÈ»¼ÙÉèÔÚÍ¬Ò»½ø³Ì¿Õ¼äÄÚÊ¹ÓÃ¡£
-// - token.index ÔÚ pending ×´Ì¬ÏÂ±»ÓÃÓÚ´æ´¢ pending id£¨ObjManager µÄÔ¼¶¨£©£¬Òò´ËÔÚÊ¹ÓÃÇ°¿ÉÄÜĞèÍ¨¹ı ObjManager::TryGetRegisteration ½« pending ×ª»»ÎªÕæÊµ token¡£
-// ×Ö¶ÎËµÃ÷£º
-// - index: Êµ¼Ê²ÛË÷Òı»ò pending id£¨pending Ê±ÓÉ ObjManager Ô¼¶¨£©
-// - generation: ÓÉ ObjManager ¹ÜÀí£¬Ã¿´Î²Û»ØÊÕÊ±µİÔöÒÔÊ¹¾É token Ê§Ğ§
-// - isRegitsered: ±íÊ¾¸Ã token ÊÇ·ñÒÑ¾­Îª¡°×¢²á/ÕæÊµ¡± token£¨Îª true Ê± index/generation Ö¸Ïò objects_ ÖĞµÄÌõÄ¿£©
-// Ê¹ÓÃ½¨Òé£º
-// - ÔÚ¿çÖ¡±£´æ token ÊÇ°²È«µÄ£»Ê¹ÓÃÇ°µ÷ÓÃ ObjManager::IsValid »ò TryGetRegisteration ÒÔÈ·ÈÏ token ÈÔÓĞĞ§¡£
-// - ²»ÒªÖ±½Ó±È½Ï token.index ÒÔÍÆ¶Ï¶ÔÏóÉúÃüÖÜÆÚ£¬ÒªÊ¹ÓÃ operator==/!= »òÍ¨¹ı ObjManager Ìá¹©µÄ½Ó¿Ú¡£
+// ObjToken æ˜¯å¯¹æ‰˜ç®¡å¯¹è±¡çš„è½»é‡å¥æŸ„ï¼ˆhandleï¼‰ç±»å‹ï¼Œé¢å‘ä½¿ç”¨è€…è¯´æ˜ï¼š
+// - ä½¿ç”¨ (index, generation) çš„ç»„åˆæ¥å®‰å…¨å¼•ç”¨ ObjManager ç®¡ç†çš„å¯¹è±¡ï¼Œé¿å…è£¸æŒ‡é’ˆæ‚¬æŒ‚é—®é¢˜ã€‚
+// - å½“å¯¹è±¡æ§½è¢«å›æ”¶å¹¶é‡ç”¨æ—¶ï¼Œgeneration ä¼šé€’å¢ä»¥ä½¿æ—§çš„ token å¤±æ•ˆï¼›è¿™æ¯”è£¸æŒ‡é’ˆæ›´å®‰å…¨ï¼Œä½†ä»ç„¶å‡è®¾åœ¨åŒä¸€è¿›ç¨‹ç©ºé—´å†…ä½¿ç”¨ã€‚
+// - token.index åœ¨ pending çŠ¶æ€ä¸‹è¢«ç”¨äºå­˜å‚¨ pending idï¼ˆObjManager çš„çº¦å®šï¼‰ï¼Œå› æ­¤åœ¨ä½¿ç”¨å‰å¯èƒ½éœ€é€šè¿‡ ObjManager::TryGetRegisteration å°† pending è½¬æ¢ä¸ºçœŸå® tokenã€‚
+// å­—æ®µè¯´æ˜ï¼š
+// - index: å®é™…æ§½ç´¢å¼•æˆ– pending idï¼ˆpending æ—¶ç”± ObjManager çº¦å®šï¼‰
+// - generation: ç”± ObjManager ç®¡ç†ï¼Œæ¯æ¬¡æ§½å›æ”¶æ—¶é€’å¢ä»¥ä½¿æ—§ token å¤±æ•ˆ
+// - isRegitsered: è¡¨ç¤ºè¯¥ token æ˜¯å¦å·²ç»ä¸ºâ€œæ³¨å†Œ/çœŸå®â€ tokenï¼ˆä¸º true æ—¶ index/generation æŒ‡å‘ objects_ ä¸­çš„æ¡ç›®ï¼‰
+// ä½¿ç”¨å»ºè®®ï¼š
+// - åœ¨è·¨å¸§ä¿å­˜ token æ˜¯å®‰å…¨çš„ï¼›ä½¿ç”¨å‰è°ƒç”¨ ObjManager::IsValid æˆ– TryGetRegisteration ä»¥ç¡®è®¤ token ä»æœ‰æ•ˆã€‚
+// - ä¸è¦ç›´æ¥æ¯”è¾ƒ token.index ä»¥æ¨æ–­å¯¹è±¡ç”Ÿå‘½å‘¨æœŸï¼Œè¦ä½¿ç”¨ operator==/!= æˆ–é€šè¿‡ ObjManager æä¾›çš„æ¥å£ã€‚
 struct ObjToken {
     uint32_t index = std::numeric_limits<uint32_t>::max();
     uint32_t generation = 0;

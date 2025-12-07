@@ -1,87 +1,87 @@
-# ObjToken ËµÃ÷
+# ObjToken è¯´æ˜
 
-## ¸ÅÊö
-- `ObjToken` ÊÇ¶ÔÊÜ `ObjManager` ¹ÜÀí¶ÔÏóµÄÇáÁ¿¾ä±ú£¨handle£©¡£Ëü²ÉÓÃ `(index, generation)` µÄ×éºÏÀ´°²È«ÒıÓÃ¶ÔÏó²ÛÎ»£¬´Ó¶ø±ÜÃâÂãÖ¸ÕëÔÚ²Û±»¸´ÓÃÊ±²úÉúĞü¹Ò·ÃÎÊ¡£
-- ±¾ÎÄµµÖØµãËµÃ÷ `ObjToken` µÄ×Ö¶ÎÓïÒå¡¢ÉúÃüÖÜÆÚÓïÒå£¨°üÀ¨ pending/registered Çø±ğ£©£¬ÒÔ¼°ËüÓë `ObjManager`¡¢`PhysicsSystem`¡¢`BaseObject` µÈÄ£¿éµÄ½»»¥¹ØÏµÓëÊ¹ÓÃÔ¼¶¨¡£
+## æ¦‚è¿°
+- `ObjToken` æ˜¯å¯¹å— `ObjManager` ç®¡ç†å¯¹è±¡çš„è½»é‡å¥æŸ„ï¼ˆhandleï¼‰ã€‚å®ƒé‡‡ç”¨ `(index, generation)` çš„ç»„åˆæ¥å®‰å…¨å¼•ç”¨å¯¹è±¡æ§½ä½ï¼Œä»è€Œé¿å…è£¸æŒ‡é’ˆåœ¨æ§½è¢«å¤ç”¨æ—¶äº§ç”Ÿæ‚¬æŒ‚è®¿é—®ã€‚
+- æœ¬æ–‡æ¡£é‡ç‚¹è¯´æ˜ `ObjToken` çš„å­—æ®µè¯­ä¹‰ã€ç”Ÿå‘½å‘¨æœŸè¯­ä¹‰ï¼ˆåŒ…æ‹¬ pending/registered åŒºåˆ«ï¼‰ï¼Œä»¥åŠå®ƒä¸ `ObjManager`ã€`PhysicsSystem`ã€`BaseObject` ç­‰æ¨¡å—çš„äº¤äº’å…³ç³»ä¸ä½¿ç”¨çº¦å®šã€‚
 
-## ½á¹¹Ìå¶¨Òå£¨¼òÒª£©
-- ¶¨ÒåÎ»ÓÚ£º`head/object_token.h`
-- Ö÷Òª×Ö¶Î£º
-  - `uint32_t index`£º²ÛË÷Òı»ò pending id£¨Ä¬ÈÏ£º`std::numeric_limits<uint32_t>::max()` ±íÊ¾ÎŞĞ§£©¡£
-  - `uint32_t generation`£º²ÛµÄ°æ±¾ºÅ£¬ÓÉ `ObjManager` ÔÚ»ØÊÕ/¸´ÓÃ²ÛÊ±µİÔö¡£
-  - `bool isRegitsered`£º±êÊ¶¸Ã token ÊÇ·ñÎª¡°ÒÑ×¢²á/ÕæÊµ¡± token£¨true ±íÊ¾ `index` Ö¸Ïò `ObjManager::objects_` ÖĞµÄÕæÊµ²Û£»false ³£±íÊ¾ pending token£©¡£
-- °ïÖú·½·¨£º
-  - `isValid()`£º½ö¼ì²é `index` ÊÇ·ñÎª sentinel£¨²»±íÊ¾¶ÔÏóÈÔ»î×Å£©¡£
-  - `operator==/!=`£º±È½Ï `index` Óë `generation`£¬ÓÃÓÚÅĞµÈ¡£
-  - `static Invalid()`£º¹¹ÔìÒ»¸öÎŞĞ§ token¡£
+## ç»“æ„ä½“å®šä¹‰ï¼ˆç®€è¦ï¼‰
+- å®šä¹‰ä½äºï¼š`head/object_token.h`
+- ä¸»è¦å­—æ®µï¼š
+  - `uint32_t index`ï¼šæ§½ç´¢å¼•æˆ– pending idï¼ˆé»˜è®¤ï¼š`std::numeric_limits<uint32_t>::max()` è¡¨ç¤ºæ— æ•ˆï¼‰ã€‚
+  - `uint32_t generation`ï¼šæ§½çš„ç‰ˆæœ¬å·ï¼Œç”± `ObjManager` åœ¨å›æ”¶/å¤ç”¨æ§½æ—¶é€’å¢ã€‚
+  - `bool isRegitsered`ï¼šæ ‡è¯†è¯¥ token æ˜¯å¦ä¸ºâ€œå·²æ³¨å†Œ/çœŸå®â€ tokenï¼ˆtrue è¡¨ç¤º `index` æŒ‡å‘ `ObjManager::objects_` ä¸­çš„çœŸå®æ§½ï¼›false å¸¸è¡¨ç¤º pending tokenï¼‰ã€‚
+- å¸®åŠ©æ–¹æ³•ï¼š
+  - `isValid()`ï¼šä»…æ£€æŸ¥ `index` æ˜¯å¦ä¸º sentinelï¼ˆä¸è¡¨ç¤ºå¯¹è±¡ä»æ´»ç€ï¼‰ã€‚
+  - `operator==/!=`ï¼šæ¯”è¾ƒ `index` ä¸ `generation`ï¼Œç”¨äºåˆ¤ç­‰ã€‚
+  - `static Invalid()`ï¼šæ„é€ ä¸€ä¸ªæ— æ•ˆ tokenã€‚
 
-## ÓïÒåÓëÉúÃüÖÜÆÚ
-- Á½ÀàÓïÒå×´Ì¬
-  - Pending token£¨Í¨³£ `isRegitsered == false`£©£º
-    - ÔÚ `ObjManager::CreateEntry` ´´½¨¶ÔÏóÊ±·µ»Ø¡£´ËÊ±¶ÔÏóÒÑ¹¹Ôì²¢ÒÑÖ´ĞĞ `Start()`£¬µ«ÉĞÎ´ºÏ²¢µ½ `objects_`£¬Æä `index` ´æ´¢Îª pending id£¨·ÇÕæÊµ²ÛË÷Òı£©¡£
-    - ÔÚÏÂÒ»´Î `ObjManager::UpdateAll()` µÄÌá½»½×¶Î£¬pending ¶ÔÏó»á±»ºÏ²¢ÎªÕæÊµ²Û£¬²¢ÔÚ `pending_to_real_map_` ÖĞ¼ÇÂ¼ pending id -> ÕæÊµ `ObjToken` µÄÓ³Éä¡£
-    - ¿ÉÍ¨¹ı `ObjManager::TryGetRegisteration` ½« pending token Éı¼¶ÎªÕæÊµ token¡£
-  - Registered token£¨`isRegitsered == true`£©£º
-    - ±íÊ¾¸Ã token ÒÑ¾­±»Ğ´»ØÎªÕæÊµ (index, generation)£¬²¢ÇÒ `ObjManager` µÄ `objects_[index]` ÔÚ¸Ã generation ÉÏÓ¦µ±ÊÇ»îÔ¾µÄ¶ÔÏó¡£
-    - Registered token ÈÔ¿ÉÄÜÒò¶ÔÏó±»Ïú»Ù¶øÊ§Ğ§£¬´ËÊ± `generation` Óë `objects_[index].generation` ²»Æ¥Åä£¬`ObjManager::IsValid` ·µ»Ø false¡£
-- Generation µÄ×÷ÓÃ
-  - µ± `ObjManager` »ØÊÕÄ³Ò» slot ²¢ÖØĞÂÓÃÓÚĞÂ¶ÔÏóÊ±£¬»áÔö¼Ó¸Ã slot µÄ `generation`£¬Ê¹ËùÓĞÖ¸Ïò¾É `(index, old_generation)` µÄ¾É token Ê§Ğ§£¬±ÜÃâ´íÎó·ÃÎÊ¡£
-- ÎªÊ²Ã´²»Ö»ÓÃ index£¿
-  - ½öÓÃ index ÎŞ·¨Çø·Ö¾É token ÓëĞÂ¶ÔÏó£¨²Û±»¸´ÓÃ£©£¬generation ÊÇ·ÀÖ¹¡°ABA¡±Àà´íÎóµÄ¼òµ¥¶ø¸ßĞ§ÊÖ¶Î¡£
+## è¯­ä¹‰ä¸ç”Ÿå‘½å‘¨æœŸ
+- ä¸¤ç±»è¯­ä¹‰çŠ¶æ€
+  - Pending tokenï¼ˆé€šå¸¸ `isRegitsered == false`ï¼‰ï¼š
+    - åœ¨ `ObjManager::CreateEntry` åˆ›å»ºå¯¹è±¡æ—¶è¿”å›ã€‚æ­¤æ—¶å¯¹è±¡å·²æ„é€ å¹¶å·²æ‰§è¡Œ `Start()`ï¼Œä½†å°šæœªåˆå¹¶åˆ° `objects_`ï¼Œå…¶ `index` å­˜å‚¨ä¸º pending idï¼ˆéçœŸå®æ§½ç´¢å¼•ï¼‰ã€‚
+    - åœ¨ä¸‹ä¸€æ¬¡ `ObjManager::UpdateAll()` çš„æäº¤é˜¶æ®µï¼Œpending å¯¹è±¡ä¼šè¢«åˆå¹¶ä¸ºçœŸå®æ§½ï¼Œå¹¶åœ¨ `pending_to_real_map_` ä¸­è®°å½• pending id -> çœŸå® `ObjToken` çš„æ˜ å°„ã€‚
+    - å¯é€šè¿‡ `ObjManager::TryGetRegisteration` å°† pending token å‡çº§ä¸ºçœŸå® tokenã€‚
+  - Registered tokenï¼ˆ`isRegitsered == true`ï¼‰ï¼š
+    - è¡¨ç¤ºè¯¥ token å·²ç»è¢«å†™å›ä¸ºçœŸå® (index, generation)ï¼Œå¹¶ä¸” `ObjManager` çš„ `objects_[index]` åœ¨è¯¥ generation ä¸Šåº”å½“æ˜¯æ´»è·ƒçš„å¯¹è±¡ã€‚
+    - Registered token ä»å¯èƒ½å› å¯¹è±¡è¢«é”€æ¯è€Œå¤±æ•ˆï¼Œæ­¤æ—¶ `generation` ä¸ `objects_[index].generation` ä¸åŒ¹é…ï¼Œ`ObjManager::IsValid` è¿”å› falseã€‚
+- Generation çš„ä½œç”¨
+  - å½“ `ObjManager` å›æ”¶æŸä¸€ slot å¹¶é‡æ–°ç”¨äºæ–°å¯¹è±¡æ—¶ï¼Œä¼šå¢åŠ è¯¥ slot çš„ `generation`ï¼Œä½¿æ‰€æœ‰æŒ‡å‘æ—§ `(index, old_generation)` çš„æ—§ token å¤±æ•ˆï¼Œé¿å…é”™è¯¯è®¿é—®ã€‚
+- ä¸ºä»€ä¹ˆä¸åªç”¨ indexï¼Ÿ
+  - ä»…ç”¨ index æ— æ³•åŒºåˆ†æ—§ token ä¸æ–°å¯¹è±¡ï¼ˆæ§½è¢«å¤ç”¨ï¼‰ï¼Œgeneration æ˜¯é˜²æ­¢â€œABAâ€ç±»é”™è¯¯çš„ç®€å•è€Œé«˜æ•ˆæ‰‹æ®µã€‚
 
-## Óë `ObjManager` µÄ¹ØÏµ£¨ºËĞÄ£©
-- `ObjManager` ¹ÜÀí `objects_`¡¢`pending_creates_`¡¢`pending_to_real_map_`¡¢`pending_destroys_` µÈ½á¹¹£¬ÊÇ `ObjToken` µÄ·¢ĞĞÕßÓëÑéÖ¤Æ÷¡£
-- ÍÆ¼öµ÷ÓÃÄ£Ê½£º
-  - »ñÈ¡ token£º`auto tok = objs.Create<MyType>(...);`£¨·µ»Ø pending token£©
-  - ÔÚÏÂÒ»Ö¡»òºÏÊÊÊ±»úÍ¨¹ı `objs.TryGetRegisteration(tok)` ½«Æä½âÎöÎªÕæÊµ token£¬»òÔÚ·ÃÎÊÇ°Ê¹ÓÃ `objs.IsValid(tok)` / `objs.operator[]`£¨operator[] ¶Ô pending ÓĞ¶îÍâ´¦ÀíÂß¼­£©¡£
-- `ObjManager::operator[]` µÄĞĞÎª£º
-  - ¶Ô pending token£º·Ç const °æ±¾»áÏÈÔÚ `pending_creates_` ÖĞ²éÕÒ²¢Ö±½Ó·µ»ØÎ´ºÏ²¢¶ÔÏóÒıÓÃ£»·ñÔò³¢ÊÔ `TryGetRegisteration` ºóÔÙ·ÃÎÊÕæÊµ¶ÔÏó¡£
-  - ¶Ô registered token£º»áÑéÖ¤ `index`/`generation` ²¢ÔÚ·Ç·¨Ê±Å×³ö `std::out_of_range`£¨Í¬Ê±Ğ´ÈëÕï¶ÏÈÕÖ¾£©¡£
-- Ïú»Ù½»»¥£º
-  - ´«Èë pending token µ½ `ObjManager::Destroy` »á´¥·¢ `DestroyPending`£¨Ö±½ÓÏú»Ù pending ÊµÀı£©¡£
-  - ´«Èë registered token »á½«ÆäÈë¶Ó `pending_destroys_`£¬²¢ÔÚ `UpdateAll()` µÄ°²È«µãÖ´ĞĞÊµ¼ÊÏú»Ù£¨`DestroyEntry`£©¡£
+## ä¸ `ObjManager` çš„å…³ç³»ï¼ˆæ ¸å¿ƒï¼‰
+- `ObjManager` ç®¡ç† `objects_`ã€`pending_creates_`ã€`pending_to_real_map_`ã€`pending_destroys_` ç­‰ç»“æ„ï¼Œæ˜¯ `ObjToken` çš„å‘è¡Œè€…ä¸éªŒè¯å™¨ã€‚
+- æ¨èè°ƒç”¨æ¨¡å¼ï¼š
+  - è·å– tokenï¼š`auto tok = objs.Create<MyType>(...);`ï¼ˆè¿”å› pending tokenï¼‰
+  - åœ¨ä¸‹ä¸€å¸§æˆ–åˆé€‚æ—¶æœºé€šè¿‡ `objs.TryGetRegisteration(tok)` å°†å…¶è§£æä¸ºçœŸå® tokenï¼Œæˆ–åœ¨è®¿é—®å‰ä½¿ç”¨ `objs.IsValid(tok)` / `objs.operator[]`ï¼ˆoperator[] å¯¹ pending æœ‰é¢å¤–å¤„ç†é€»è¾‘ï¼‰ã€‚
+- `ObjManager::operator[]` çš„è¡Œä¸ºï¼š
+  - å¯¹ pending tokenï¼šé const ç‰ˆæœ¬ä¼šå…ˆåœ¨ `pending_creates_` ä¸­æŸ¥æ‰¾å¹¶ç›´æ¥è¿”å›æœªåˆå¹¶å¯¹è±¡å¼•ç”¨ï¼›å¦åˆ™å°è¯• `TryGetRegisteration` åå†è®¿é—®çœŸå®å¯¹è±¡ã€‚
+  - å¯¹ registered tokenï¼šä¼šéªŒè¯ `index`/`generation` å¹¶åœ¨éæ³•æ—¶æŠ›å‡º `std::out_of_range`ï¼ˆåŒæ—¶å†™å…¥è¯Šæ–­æ—¥å¿—ï¼‰ã€‚
+- é”€æ¯äº¤äº’ï¼š
+  - ä¼ å…¥ pending token åˆ° `ObjManager::Destroy` ä¼šè§¦å‘ `DestroyPending`ï¼ˆç›´æ¥é”€æ¯ pending å®ä¾‹ï¼‰ã€‚
+  - ä¼ å…¥ registered token ä¼šå°†å…¶å…¥é˜Ÿ `pending_destroys_`ï¼Œå¹¶åœ¨ `UpdateAll()` çš„å®‰å…¨ç‚¹æ‰§è¡Œå®é™…é”€æ¯ï¼ˆ`DestroyEntry`ï¼‰ã€‚
 
-## Óë `PhysicsSystem` / `BaseObject` µÄ¹ØÏµ
-- `PhysicsSystem::Register` / `Unregister` Ê¹ÓÃ `ObjToken` ½« `BasePhysics` ÌõÄ¿Óë `ObjManager` µÄ¶ÔÏó¾ä±ú¹ØÁªÆğÀ´¡£Í¨³£ÕâÒ»×¢²áÔÚ pending ºÏ²¢ÎªÕæÊµ token Ê±ÓÉ `ObjManager` ×Ô¶¯Íê³É¡£
-- Åö×²»Øµ÷Á÷³Ì£¨¸ß²ã£©£º
-  1. `PhysicsSystem::Step()` ·¢ÏÖÅö×²£¬²úÉú `CollisionEvent`£¬ÆäÖĞ±£´æµÄÊÇ²ÎÓëÅö×²¶ÔÏóµÄ `ObjToken`£¨À´×Ô entries_£©¡£
-  2. ÔÚ´¥·¢»Øµ÷Ç°£¬`PhysicsSystem` »áÍ¨¹ı `ObjManager::IsValid` È·ÈÏ token ÈÔÈ»ÓĞĞ§£¨¶ÔÏóÎ´ÔÚ±¾Ö¡ÖĞ±»Ïú»Ù»ò±»ÖØÓÃ£©¡£
-  3. Ê¹ÓÃ `ObjManager::operator[]`£¨»òÍ¨¹ı TryGetRegisteration/IsValid ÑéÖ¤ºó£©»ñÈ¡ `BaseObject&`£¬²¢µ÷ÓÃ `BaseObject::OnCollisionState` / `OnCollisionEnter/Stay/Exit`¡£
-- ÒòÎª `ObjToken` ÓÃÓÚ¿çÄ£¿éÒıÓÃ£¨ÎïÀíÏµÍ³³ÖÓĞ token£©£¬Ëü±ØĞë±£³ÖÇáÁ¿ÇÒ¿ÉĞòÁĞ»¯£¨index/generation£©¡£µ±¶ÔÏó±»Ïú»Ù»ò²Û¸´ÓÃÊ±£¬¾É token µÄÎŞº¦Ê§Ğ§±£Ö¤ÁË»Øµ÷½×¶ÎµÄ°²È«¡£
+## ä¸ `PhysicsSystem` / `BaseObject` çš„å…³ç³»
+- `PhysicsSystem::Register` / `Unregister` ä½¿ç”¨ `ObjToken` å°† `BasePhysics` æ¡ç›®ä¸ `ObjManager` çš„å¯¹è±¡å¥æŸ„å…³è”èµ·æ¥ã€‚é€šå¸¸è¿™ä¸€æ³¨å†Œåœ¨ pending åˆå¹¶ä¸ºçœŸå® token æ—¶ç”± `ObjManager` è‡ªåŠ¨å®Œæˆã€‚
+- ç¢°æ’å›è°ƒæµç¨‹ï¼ˆé«˜å±‚ï¼‰ï¼š
+  1. `PhysicsSystem::Step()` å‘ç°ç¢°æ’ï¼Œäº§ç”Ÿ `CollisionEvent`ï¼Œå…¶ä¸­ä¿å­˜çš„æ˜¯å‚ä¸ç¢°æ’å¯¹è±¡çš„ `ObjToken`ï¼ˆæ¥è‡ª entries_ï¼‰ã€‚
+  2. åœ¨è§¦å‘å›è°ƒå‰ï¼Œ`PhysicsSystem` ä¼šé€šè¿‡ `ObjManager::IsValid` ç¡®è®¤ token ä»ç„¶æœ‰æ•ˆï¼ˆå¯¹è±¡æœªåœ¨æœ¬å¸§ä¸­è¢«é”€æ¯æˆ–è¢«é‡ç”¨ï¼‰ã€‚
+  3. ä½¿ç”¨ `ObjManager::operator[]`ï¼ˆæˆ–é€šè¿‡ TryGetRegisteration/IsValid éªŒè¯åï¼‰è·å– `BaseObject&`ï¼Œå¹¶è°ƒç”¨ `BaseObject::OnCollisionState` / `OnCollisionEnter/Stay/Exit`ã€‚
+- å› ä¸º `ObjToken` ç”¨äºè·¨æ¨¡å—å¼•ç”¨ï¼ˆç‰©ç†ç³»ç»ŸæŒæœ‰ tokenï¼‰ï¼Œå®ƒå¿…é¡»ä¿æŒè½»é‡ä¸”å¯åºåˆ—åŒ–ï¼ˆindex/generationï¼‰ã€‚å½“å¯¹è±¡è¢«é”€æ¯æˆ–æ§½å¤ç”¨æ—¶ï¼Œæ—§ token çš„æ— å®³å¤±æ•ˆä¿è¯äº†å›è°ƒé˜¶æ®µçš„å®‰å…¨ã€‚
 
-## Ê¹ÓÃ½¨ÒéÓë×î¼ÑÊµ¼ù
-- ÓÀÔ¶²»Òª½öÆ¾ `token.index` ÅĞ¶Ï¶ÔÏóÊÇ·ñ´æÔÚ£»Ê¹ÓÃ `ObjManager::IsValid(token)` »ò `TryGetRegisteration`¡£
-- ÈôĞèÒªÔÚ»Øµ÷»òÍâ²¿±£´æ token ²¢ÔÚºóĞøÖ¡·ÃÎÊ£¬Çë£º
-  - ±£´æ token£¬µ÷ÓÃÇ°ÏÈ `TryGetRegisteration` »ò `IsValid`£»Èô `TryGetRegisteration` ·µ»Ø true£¬Ìæ»»ÎªÕæÊµ token£¨·Ç const °æ±¾»á¸²¸ÇÊäÈë token£©¡£
-- µ±´Ó `Create` »ñµÃ pending token ²¢Á¢¼´ĞèÒªÊ¹ÓÃ¶ÔÏó£¨ÀıÈçÁ¢¼´³õÊ¼»¯»ò²éÑ¯£©£¬¿É£º
-  - Ö±½ÓÍ¨¹ı `ObjManager::operator[]` ·ÃÎÊ pending£¨·Ç const °æ±¾Ö§³Ö·ÃÎÊ pending_creates_£©£¬µ«Ó¦×¢Òâ¶ÔÏóÉĞÎ´³ÉÎª¡°registered¡±£¬²¢ÇÒÔÚÏÂÒ»´Î `UpdateAll()` ºÏ²¢Ê±ÆäÕæÊµ token ²Å»á²úÉú¡£
-- ÔÚÅö×²»Øµ÷»ò¸´ÔÓÉúÃüÖÜÆÚ²Ù×÷ÖĞ£¬±ÜÃâÖ±½ÓÔÚ»Øµ÷ÀïÁ¢¼´ `delete` ¶ÔÏó£»Ó¦µ÷ÓÃ `ObjManager::Destroy(token)` ÓÉ `ObjManager` ÔÚ°²È«µã´¦Àí¡£
+## ä½¿ç”¨å»ºè®®ä¸æœ€ä½³å®è·µ
+- æ°¸è¿œä¸è¦ä»…å‡­ `token.index` åˆ¤æ–­å¯¹è±¡æ˜¯å¦å­˜åœ¨ï¼›ä½¿ç”¨ `ObjManager::IsValid(token)` æˆ– `TryGetRegisteration`ã€‚
+- è‹¥éœ€è¦åœ¨å›è°ƒæˆ–å¤–éƒ¨ä¿å­˜ token å¹¶åœ¨åç»­å¸§è®¿é—®ï¼Œè¯·ï¼š
+  - ä¿å­˜ tokenï¼Œè°ƒç”¨å‰å…ˆ `TryGetRegisteration` æˆ– `IsValid`ï¼›è‹¥ `TryGetRegisteration` è¿”å› trueï¼Œæ›¿æ¢ä¸ºçœŸå® tokenï¼ˆé const ç‰ˆæœ¬ä¼šè¦†ç›–è¾“å…¥ tokenï¼‰ã€‚
+- å½“ä» `Create` è·å¾— pending token å¹¶ç«‹å³éœ€è¦ä½¿ç”¨å¯¹è±¡ï¼ˆä¾‹å¦‚ç«‹å³åˆå§‹åŒ–æˆ–æŸ¥è¯¢ï¼‰ï¼Œå¯ï¼š
+  - ç›´æ¥é€šè¿‡ `ObjManager::operator[]` è®¿é—® pendingï¼ˆé const ç‰ˆæœ¬æ”¯æŒè®¿é—® pending_creates_ï¼‰ï¼Œä½†åº”æ³¨æ„å¯¹è±¡å°šæœªæˆä¸ºâ€œregisteredâ€ï¼Œå¹¶ä¸”åœ¨ä¸‹ä¸€æ¬¡ `UpdateAll()` åˆå¹¶æ—¶å…¶çœŸå® token æ‰ä¼šäº§ç”Ÿã€‚
+- åœ¨ç¢°æ’å›è°ƒæˆ–å¤æ‚ç”Ÿå‘½å‘¨æœŸæ“ä½œä¸­ï¼Œé¿å…ç›´æ¥åœ¨å›è°ƒé‡Œç«‹å³ `delete` å¯¹è±¡ï¼›åº”è°ƒç”¨ `ObjManager::Destroy(token)` ç”± `ObjManager` åœ¨å®‰å…¨ç‚¹å¤„ç†ã€‚
 
-## ¼ò¶ÌÊ¾Àı
+## ç®€çŸ­ç¤ºä¾‹
 ```cpp
 
-// ´´½¨²¢±£´æ token£¨¿ÉÄÜÊÇ pending£© 
+// åˆ›å»ºå¹¶ä¿å­˜ tokenï¼ˆå¯èƒ½æ˜¯ pendingï¼‰ 
 ObjToken tok = objs.Create<MyObject>(/* args */);
 
-// ÏÂÒ»Ö¡»òÔÚºÏÊÊÎ»ÖÃ³¢ÊÔ½âÎöÎªÕæÊµ token 
+// ä¸‹ä¸€å¸§æˆ–åœ¨åˆé€‚ä½ç½®å°è¯•è§£æä¸ºçœŸå® token 
 if (objs.TryGetRegisteration(tok)) { 
-    // tok ÒÑ±»¸üĞÂÎªÕæÊµ token£¬ÇÒ tok.isRegitsered==true 
+    // tok å·²è¢«æ›´æ–°ä¸ºçœŸå® tokenï¼Œä¸” tok.isRegitsered==true 
     if (objs.IsValid(tok)) { 
-        BaseObject& obj = objs[tok]; // Í¨¹ıoperator[](tok)°²È«·ÃÎÊÒÑ×¢²á¶ÔÏó
-        // Ê¹ÓÃ obj
+        BaseObject& obj = objs[tok]; // é€šè¿‡operator[](tok)å®‰å…¨è®¿é—®å·²æ³¨å†Œå¯¹è±¡
+        // ä½¿ç”¨ obj
     } 
     else {
-        // ÈÔÎª pending£º¿ÉÍ¨¹ı operatornon-const Ö±½Ó·ÃÎÊ pending ÊµÀı£¨·ÇºÏ²¢×´Ì¬£© 
-        // »òµÈ´ıÏÂÒ»Ö¡ UpdateAll Ìá½» 
+        // ä»ä¸º pendingï¼šå¯é€šè¿‡ operatornon-const ç›´æ¥è®¿é—® pending å®ä¾‹ï¼ˆéåˆå¹¶çŠ¶æ€ï¼‰ 
+        // æˆ–ç­‰å¾…ä¸‹ä¸€å¸§ UpdateAll æäº¤ 
     }
 }
 ```
 
-## ³£¼ûÏİÚå
-- ÎóÓÃ `isValid()`£º`ObjToken::isValid()` ½öÅĞ¶Ï index ×Ö¶ÎÊÇ·ñÎª sentinel£¬²»´ú±í¶ÔÏóµ±Ç°ÈÔ´æ»î¡£Ó¦Ê¹ÓÃ `ObjManager::IsValid()` ½øĞĞÊµ¼ÊÑéÖ¤¡£
-- ºöÂÔ generation£ºÖ±½ÓÒÔ `index` ·ÃÎÊ `objects_` »áµ¼ÖÂ¶ÁÈ¡±»¸´ÓÃ²ÛµÄÈ«ĞÂ¶ÔÏó£¬´Ó¶ø²úÉúÑÏÖØÂß¼­´íÎó¡£
-- ÔÚ¶àÏß³Ì»·¾³ÖĞÎŞÍ¬²½µØ±£´æ/´«µİ token£º`ObjManager` Éè¼ÆÎªµ¥Ïß³Ì£¨Ö÷Ñ­»·£©Ê¹ÓÃ£¬¿çÏß³Ì¶ÁĞ´±ØĞë¼ÓËø»òÍ¨¹ıÏûÏ¢/Í¬²½ÔÚÖ÷Ïß³ÌÍê³É×¢²á/Ïú»Ù/·ÃÎÊ¡£
+## å¸¸è§é™·é˜±
+- è¯¯ç”¨ `isValid()`ï¼š`ObjToken::isValid()` ä»…åˆ¤æ–­ index å­—æ®µæ˜¯å¦ä¸º sentinelï¼Œä¸ä»£è¡¨å¯¹è±¡å½“å‰ä»å­˜æ´»ã€‚åº”ä½¿ç”¨ `ObjManager::IsValid()` è¿›è¡Œå®é™…éªŒè¯ã€‚
+- å¿½ç•¥ generationï¼šç›´æ¥ä»¥ `index` è®¿é—® `objects_` ä¼šå¯¼è‡´è¯»å–è¢«å¤ç”¨æ§½çš„å…¨æ–°å¯¹è±¡ï¼Œä»è€Œäº§ç”Ÿä¸¥é‡é€»è¾‘é”™è¯¯ã€‚
+- åœ¨å¤šçº¿ç¨‹ç¯å¢ƒä¸­æ— åŒæ­¥åœ°ä¿å­˜/ä¼ é€’ tokenï¼š`ObjManager` è®¾è®¡ä¸ºå•çº¿ç¨‹ï¼ˆä¸»å¾ªç¯ï¼‰ä½¿ç”¨ï¼Œè·¨çº¿ç¨‹è¯»å†™å¿…é¡»åŠ é”æˆ–é€šè¿‡æ¶ˆæ¯/åŒæ­¥åœ¨ä¸»çº¿ç¨‹å®Œæˆæ³¨å†Œ/é”€æ¯/è®¿é—®ã€‚
 
-## ×Ü½á
-- `ObjToken` ÊÇÁ¬½Ó `ObjManager`¡¢`PhysicsSystem`¡¢`BaseObject` µÈÄ£¿éµÄÇáÁ¿¾ä±ú£¬ËüÍ¨¹ı `(index, generation, isRegitsered)` ±í´ï pending/registered/invalid µÈ¶àÖÖ×´Ì¬¡£
-- Ê¹ÓÃ `ObjToken` Ê±Ó¦ÒÀÀµ `ObjManager` Ìá¹©µÄÑéÖ¤Óë½âÎöº¯ÊıÀ´È·±£°²È«·ÃÎÊ£»±ÜÃâÖ±½ÓÒÔ `index` ÍÆ¶Ï¶ÔÏó×´Ì¬»ò×ö²¢·¢·ÃÎÊ¡£  
+## æ€»ç»“
+- `ObjToken` æ˜¯è¿æ¥ `ObjManager`ã€`PhysicsSystem`ã€`BaseObject` ç­‰æ¨¡å—çš„è½»é‡å¥æŸ„ï¼Œå®ƒé€šè¿‡ `(index, generation, isRegitsered)` è¡¨è¾¾ pending/registered/invalid ç­‰å¤šç§çŠ¶æ€ã€‚
+- ä½¿ç”¨ `ObjToken` æ—¶åº”ä¾èµ– `ObjManager` æä¾›çš„éªŒè¯ä¸è§£æå‡½æ•°æ¥ç¡®ä¿å®‰å…¨è®¿é—®ï¼›é¿å…ç›´æ¥ä»¥ `index` æ¨æ–­å¯¹è±¡çŠ¶æ€æˆ–åšå¹¶å‘è®¿é—®ã€‚  

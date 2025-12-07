@@ -3,27 +3,27 @@
 #include<bitset>
 #include "v2math.h"
 
-// ÊäÈë×´Ì¬·â×°£ºÎªÉÏ²ãÌá¹©¸üÖ±¹ÛµÄ¼ü/Êó±ê×´Ì¬Ã¶¾Ù
-// KeyState / MouseState µÄÓïÒå¾ùÎª edge + level µÄ×éºÏ£¬·½±ãÓÎÏ·Âß¼­Ö±½Ó²éÑ¯
+// è¾“å…¥çŠ¶æ€å°è£…ï¼šä¸ºä¸Šå±‚æä¾›æ›´ç›´è§‚çš„é”®/é¼ æ ‡çŠ¶æ€æšä¸¾
+// KeyState / MouseState çš„è¯­ä¹‰å‡ä¸º edge + level çš„ç»„åˆï¼Œæ–¹ä¾¿æ¸¸æˆé€»è¾‘ç›´æ¥æŸ¥è¯¢
 enum class KeyState {
-	Up, // ±»Ì§ÆğÊ±£¨edge£©
-	Down, // ±»°´ÏÂÊ±£¨edge£©
-	Hold, // ³ÖĞø°´ÏÂÊ±£¨level£¬»ò°´ÏÂ´¥·¢£© 
-	Hang, // ³ÖĞøÌ§ÆğÊ±£¨level£©
-	Repeatable // ¿ÉÖØ¸´´¥·¢Ê±£¨°´ÏÂÄ³¸ö¼üÊ±´¥·¢£¬ÒÔ¼°°´ÏÂÒ»Ğ¡¶ÎÊ±¼äºóÖØ¸´´¥·¢£©
+	Up, // è¢«æŠ¬èµ·æ—¶ï¼ˆedgeï¼‰
+	Down, // è¢«æŒ‰ä¸‹æ—¶ï¼ˆedgeï¼‰
+	Hold, // æŒç»­æŒ‰ä¸‹æ—¶ï¼ˆlevelï¼Œæˆ–æŒ‰ä¸‹è§¦å‘ï¼‰ 
+	Hang, // æŒç»­æŠ¬èµ·æ—¶ï¼ˆlevelï¼‰
+	Repeatable // å¯é‡å¤è§¦å‘æ—¶ï¼ˆæŒ‰ä¸‹æŸä¸ªé”®æ—¶è§¦å‘ï¼Œä»¥åŠæŒ‰ä¸‹ä¸€å°æ®µæ—¶é—´åé‡å¤è§¦å‘ï¼‰
 };
 
 enum class MouseState {
-	Up, // ¸ÕÌ§Æğ£¨edge£©
-	Down, // ¸Õ°´ÏÂ£¨edge£©
-	Hold, // ³ÖĞø°´ÏÂ£¨level£©
-	Hang, // ³ÖĞøÌ§Æğ£¨level£©
-	DoubleClick, // Ë«»÷£¨edge£©
-	DoubleClickAndHold // Ë«»÷²¢³ÖĞø°´ÏÂ£¨×éºÏ×´Ì¬£©
+	Up, // åˆšæŠ¬èµ·ï¼ˆedgeï¼‰
+	Down, // åˆšæŒ‰ä¸‹ï¼ˆedgeï¼‰
+	Hold, // æŒç»­æŒ‰ä¸‹ï¼ˆlevelï¼‰
+	Hang, // æŒç»­æŠ¬èµ·ï¼ˆlevelï¼‰
+	DoubleClick, // åŒå‡»ï¼ˆedgeï¼‰
+	DoubleClickAndHold // åŒå‡»å¹¶æŒç»­æŒ‰ä¸‹ï¼ˆç»„åˆçŠ¶æ€ï¼‰
 };
 
-// Input ÃüÃû¿Õ¼äÌá¹©Ò»Ğ©±ã½İµÄÊäÈë²éÑ¯º¯Êı£¬°ü×°ÁË cute_input µÄµ×²ã½Ó¿Ú¡£
-// Ô¼¶¨£ºÕâĞ©º¯Êı¾ùÎª inline ÇÒ noexcept£¬ÊÊºÏÔÚÓÎÏ·Ö÷Ñ­»·ÖĞÆµ·±µ÷ÓÃ¡£
+// Input å‘½åç©ºé—´æä¾›ä¸€äº›ä¾¿æ·çš„è¾“å…¥æŸ¥è¯¢å‡½æ•°ï¼ŒåŒ…è£…äº† cute_input çš„åº•å±‚æ¥å£ã€‚
+// çº¦å®šï¼šè¿™äº›å‡½æ•°å‡ä¸º inline ä¸” noexceptï¼Œé€‚åˆåœ¨æ¸¸æˆä¸»å¾ªç¯ä¸­é¢‘ç¹è°ƒç”¨ã€‚
 namespace Input {
 	inline bool IsKeyInState(CF_KeyButton key, KeyState state) noexcept;
 	inline bool KeyDown(CF_KeyButton& out_key) noexcept;
@@ -36,20 +36,20 @@ namespace Input {
 	inline void SetMouseHide(bool hide) { cf_mouse_hide(hide); }
 	inline bool IsMouseHidden() { return cf_mouse_hidden(); }
 
-	// »ñÈ¡µ±Ç°Êó±êÎ»ÖÃ£¨ÈôÊó±ê±»Òş²ØÔò·µ»Ø false£©
+	// è·å–å½“å‰é¼ æ ‡ä½ç½®ï¼ˆè‹¥é¼ æ ‡è¢«éšè—åˆ™è¿”å› falseï¼‰
 	inline bool MousePos(CF_V2& out_pos) noexcept {
 		if (cf_mouse_hidden()) return false;
 		out_pos.x = cf_mouse_x();
 		out_pos.y = cf_mouse_y();
 		return true;
 	}
-	// »ñÈ¡Êó±êÔË¶¯ÏòÁ¿£¨·µ»Ø true ±íÊ¾ÓĞÔË¶¯£©
+	// è·å–é¼ æ ‡è¿åŠ¨å‘é‡ï¼ˆè¿”å› true è¡¨ç¤ºæœ‰è¿åŠ¨ï¼‰
 	inline bool MouseMotion(CF_V2& out_motion) noexcept {
 		out_motion.x = cf_mouse_motion_x();
 		out_motion.y = cf_mouse_motion_y();
 		return v2math::equal(out_motion, v2math::zero());
 	}
-	// Êó±ê¹öÂÖÔË¶¯£¨·µ»Ø true ±íÊ¾ÓĞ¹ö¶¯£©
+	// é¼ æ ‡æ»šè½®è¿åŠ¨ï¼ˆè¿”å› true è¡¨ç¤ºæœ‰æ»šåŠ¨ï¼‰
 	inline bool WheelMotion(float& out_motion) noexcept {
 		out_motion = cf_mouse_wheel_motion();
 		return out_motion != 0.0f;
@@ -73,17 +73,17 @@ inline bool Input::IsKeyInState(CF_KeyButton key, KeyState state) noexcept {
 	}
 }
 
-// ±éÀúËùÓĞ¿ÉÄÜµÄ°´¼ü£¬·µ»ØµÚÒ»¸ö´¥·¢¡°°´ÏÂ¡±µÄ°´¼ü¡£
-// ÓÅÏÈ¼ì²â¸Õ°´ÏÂ£¨cf_key_just_pressed£©£¬Í¬Ê±Ò²°üº¬ÖØ¸´´¥·¢£¨cf_key_repeating£©¡£
-// ÈôÎŞ°´¼ü´¥·¢£¬½« out_key ÉèÎª CF_KEY_UNKNOWN ²¢·µ»Ø false¡£
+// éå†æ‰€æœ‰å¯èƒ½çš„æŒ‰é”®ï¼Œè¿”å›ç¬¬ä¸€ä¸ªè§¦å‘â€œæŒ‰ä¸‹â€çš„æŒ‰é”®ã€‚
+// ä¼˜å…ˆæ£€æµ‹åˆšæŒ‰ä¸‹ï¼ˆcf_key_just_pressedï¼‰ï¼ŒåŒæ—¶ä¹ŸåŒ…å«é‡å¤è§¦å‘ï¼ˆcf_key_repeatingï¼‰ã€‚
+// è‹¥æ— æŒ‰é”®è§¦å‘ï¼Œå°† out_key è®¾ä¸º CF_KEY_UNKNOWN å¹¶è¿”å› falseã€‚
 inline bool Input::KeyDown(CF_KeyButton& out_key) noexcept {
 	if (!cf_key_just_pressed(CF_KEY_ANY)) {
 		out_key = CF_KEY_UNKNOWN;
 		return false;
 	}
-	for (int i = 1; i < CF_KEY_COUNT; ++i) { // ´Ó 1 ¿ªÊ¼Ìø¹ı CF_KEY_UNKNOWN(0)
+	for (int i = 1; i < CF_KEY_COUNT; ++i) { // ä» 1 å¼€å§‹è·³è¿‡ CF_KEY_UNKNOWN(0)
 		CF_KeyButton key = static_cast<CF_KeyButton>(i);
-		if (key == CF_KEY_ANY) continue; // Ìø¹ı CF_KEY_ANY
+		if (key == CF_KEY_ANY) continue; // è·³è¿‡ CF_KEY_ANY
 		if (cf_key_just_pressed(key)) {
 			out_key = key;
 			return true;
@@ -93,12 +93,12 @@ inline bool Input::KeyDown(CF_KeyButton& out_key) noexcept {
 	return false;
 }
 
-// ·µ»ØËùÓĞ±»°´ÏÂ/ÖØ¸´´¥·¢µÄ°´¼ü£¬Ê¹ÓÃ std::bitset<CF_KEY_COUNT> ×öÎª°²È«Êı×é½á¹¹¡£
-// out_keys µÄË÷ÒıÓë CF_KeyButton µÄÕûÊıÖµ¶ÔÓ¦£»Ë÷Òı 0 ¶ÔÓ¦ CF_KEY_UNKNOWN£¨Í¨³£²»Ê¹ÓÃ£©¡£
+// è¿”å›æ‰€æœ‰è¢«æŒ‰ä¸‹/é‡å¤è§¦å‘çš„æŒ‰é”®ï¼Œä½¿ç”¨ std::bitset<CF_KEY_COUNT> åšä¸ºå®‰å…¨æ•°ç»„ç»“æ„ã€‚
+// out_keys çš„ç´¢å¼•ä¸ CF_KeyButton çš„æ•´æ•°å€¼å¯¹åº”ï¼›ç´¢å¼• 0 å¯¹åº” CF_KEY_UNKNOWNï¼ˆé€šå¸¸ä¸ä½¿ç”¨ï¼‰ã€‚
 inline bool Input::KeysDown(std::bitset<CF_KEY_COUNT>& out_keys) noexcept {
 	out_keys.reset();
 	bool any = false;
-	// ±éÀúËùÓĞ¼ü£¨Ìø¹ı CF_KEY_UNKNOWN Óë CF_KEY_ANY£©
+	// éå†æ‰€æœ‰é”®ï¼ˆè·³è¿‡ CF_KEY_UNKNOWN ä¸ CF_KEY_ANYï¼‰
 	for (int i = 1; i < CF_KEY_COUNT; ++i) {
 		if (i == CF_KEY_ANY) continue;
 		CF_KeyButton key = static_cast<CF_KeyButton>(i);
@@ -110,7 +110,7 @@ inline bool Input::KeysDown(std::bitset<CF_KEY_COUNT>& out_keys) noexcept {
 	return any;
 }
 
-// ----------------- Êó±êÏà¹Ø·â×°£¨Óë¼üÅÌ½Ó¿Ú·ç¸ñÒ»ÖÂ£© -----------------
+// ----------------- é¼ æ ‡ç›¸å…³å°è£…ï¼ˆä¸é”®ç›˜æ¥å£é£æ ¼ä¸€è‡´ï¼‰ -----------------
 
 inline bool Input::IsMouseInState(CF_MouseButton button, MouseState state) noexcept {
 	switch (state) {
@@ -131,8 +131,8 @@ inline bool Input::IsMouseInState(CF_MouseButton button, MouseState state) noexc
 	}
 }
 
-// ±éÀúËùÓĞÊó±ê°´Å¥£¬·µ»ØµÚÒ»¸ö¸Õ°´ÏÂµÄ°´Å¥¡£
-// ÈôÎŞ°´¼ü´¥·¢£¬½« out_button ÉèÎª CF_MOUSE_BUTTON_COUNT£¨»òÆäËû·Ç·¨Öµ£©²¢·µ»Ø false¡£
+// éå†æ‰€æœ‰é¼ æ ‡æŒ‰é’®ï¼Œè¿”å›ç¬¬ä¸€ä¸ªåˆšæŒ‰ä¸‹çš„æŒ‰é’®ã€‚
+// è‹¥æ— æŒ‰é”®è§¦å‘ï¼Œå°† out_button è®¾ä¸º CF_MOUSE_BUTTON_COUNTï¼ˆæˆ–å…¶ä»–éæ³•å€¼ï¼‰å¹¶è¿”å› falseã€‚
 inline bool Input::MouseDown(CF_MouseButton& out_button) noexcept {
 	for (int i = 0; i < CF_MOUSE_BUTTON_COUNT; ++i) {
 		CF_MouseButton b = static_cast<CF_MouseButton>(i);
@@ -141,19 +141,19 @@ inline bool Input::MouseDown(CF_MouseButton& out_button) noexcept {
 			return true;
 		}
 	}
-	// ½« out_button ÖÃÎªÒ»¸ö²»¿ÉÓÃÖµ£¨Ê¹ÓÃÃ¶¾ÙÉÏ½ç×÷Îª sentinel£©
+	// å°† out_button ç½®ä¸ºä¸€ä¸ªä¸å¯ç”¨å€¼ï¼ˆä½¿ç”¨æšä¸¾ä¸Šç•Œä½œä¸º sentinelï¼‰
 	out_button = static_cast<CF_MouseButton>(CF_MOUSE_BUTTON_COUNT);
 	return false;
 }
 
-// ·µ»ØËùÓĞ±»°´ÏÂ»ò¸Õ°´ÏÂµÄÊó±ê°´Å¥£¬Ê¹ÓÃ std::bitset<CF_MOUSE_BUTTON_COUNT> ×÷ÎªÎ»¼¯¡£
-// out_buttons µÄË÷ÒıÓë CF_MouseButton µÄÕûÊıÖµ¶ÔÓ¦¡£
+// è¿”å›æ‰€æœ‰è¢«æŒ‰ä¸‹æˆ–åˆšæŒ‰ä¸‹çš„é¼ æ ‡æŒ‰é’®ï¼Œä½¿ç”¨ std::bitset<CF_MOUSE_BUTTON_COUNT> ä½œä¸ºä½é›†ã€‚
+// out_buttons çš„ç´¢å¼•ä¸ CF_MouseButton çš„æ•´æ•°å€¼å¯¹åº”ã€‚
 inline bool Input::MouseButtonsDown(std::bitset<CF_MOUSE_BUTTON_COUNT>& out_buttons) noexcept {
 	out_buttons.reset();
 	bool any = false;
 	for (int i = 0; i < CF_MOUSE_BUTTON_COUNT; ++i) {
 		CF_MouseButton b = static_cast<CF_MouseButton>(i);
-		// ÕâÀï°Ñ¡°¸Õ°´ÏÂ¡±Óë¡°µ±Ç°°´ÏÂ¡±¶¼ÊÓÎª±»°´ÏÂ£¨Óë KeysDown ĞĞÎª±£³ÖÏà½ü£©
+		// è¿™é‡ŒæŠŠâ€œåˆšæŒ‰ä¸‹â€ä¸â€œå½“å‰æŒ‰ä¸‹â€éƒ½è§†ä¸ºè¢«æŒ‰ä¸‹ï¼ˆä¸ KeysDown è¡Œä¸ºä¿æŒç›¸è¿‘ï¼‰
 		if (cf_mouse_just_pressed(b) || cf_mouse_down(b)) {
 			out_buttons.set(static_cast<std::size_t>(i));
 			any = true;

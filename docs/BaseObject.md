@@ -1,54 +1,47 @@
 # BaseObject
 
-## ¸ÅÊö  
-`BaseObject` ÊÇÃæÏòÓÎÏ·Ê¹ÓÃÕßµÄÍ¨ÓÃ¶ÔÏó»ùÀà£¬ÕûºÏÁËäÖÈ¾£¨`PngSprite`£©ÓëÎïÀí£¨`BasePhysics`£©¹¦ÄÜ¡£Ëü¸ºÔğ¶ÔÏóµÄÉúÃüÖÜÆÚ¹³×Ó¡¢äÖÈ¾ÊôĞÔ±©Â¶¡¢Åö×²»Øµ÷ÒÔ¼°Óë `ObjManager` / `PhysicsSystem` µÄĞ­×÷¡£Éè¼ÆÉÏÒÔµ¥Ïß³ÌÖ÷Ñ­»·Îª¼Ù¶¨»·¾³£¬²»×öÏß³Ì°²È«±£Ö¤¡£
+## æ¦‚è¿°  
+`BaseObject` æ˜¯é¢å‘ä½¿ç”¨è€…çš„æ¸¸æˆå¯¹è±¡åŸºç±»ï¼Œæ•´åˆæ¸²æŸ“ï¼ˆ`PngSprite`ï¼‰ä¸ç‰©ç†ï¼ˆ`BasePhysics`ï¼‰åŠŸèƒ½ï¼Œå¹¶æä¾›ç”Ÿå‘½å‘¨æœŸé’©å­ä¸ç¢°æ’å›è°ƒã€‚è®¾è®¡å‡å®šåœ¨å•çº¿ç¨‹ä¸»å¾ªç¯ä¸­ä½¿ç”¨ï¼Œå»ºè®®é€šè¿‡ `ObjManager` ç®¡ç†å¯¹è±¡ç”Ÿå‘½å‘¨æœŸä»¥è·å¾—å®‰å…¨çš„å»¶è¿Ÿåˆ›å»º/é”€æ¯ä¸ token æ”¯æŒã€‚
 
-## ºËĞÄÖ°Ôğ
-- Ìá¹©ÉúÃüÖÜÆÚ¹³×Ó£º`Start()`£¨´´½¨ºó£©¡¢`FramelyApply()`£¨Ã¿Ö¡ÎïÀí»ı·ÖÓëµ÷ÊÔ£©¡¢`Update()`£¨Ã¿Ö¡Âß¼­¸üĞÂ£©¡¢`OnDestroy()`£¨Ïú»ÙÇ°ÇåÀí£©¡£
-- ½« `PngSprite` µÄÌùÍ¼/Ö¡/ÊàÖá/Ğı×ª/·­×ª/Ëõ·ÅµÈ±©Â¶³ö±ã½İ API¡£
-- ½« `BasePhysics` µÄÎ»ÖÃ/ËÙ¶È/Á¦/ĞÎ×´½Ó¿ÚÒÔ PascalCase ±©Â¶£¬±ãÓÚ½Å±¾²ã»òµ÷ÓÃ·½Ê¹ÓÃ¡£
-- Ìá¹©Åö×²»Øµ÷·Ö·¢£º`OnCollisionState` ¸ù¾İ½×¶Î·Ö·¢µ½ `OnCollisionEnter/Stay/Exit`¡£
-- ±êÇ©ÏµÍ³£¨`AddTag`¡¢`HasTag`¡¢`RemoveTag`£©ÓÃÓÚ¿ìËÙ·ÖÀà/É¸Ñ¡¶ÔÏó¡£
+## ä¸»è¦èŒè´£
+- æä¾›ç”Ÿå‘½å‘¨æœŸé’©å­ï¼š`Start()`ï¼ˆåˆå§‹åŒ–ï¼‰ã€`FramelyApply()`ï¼ˆæ¯å¸§ç‰©ç†ç§¯åˆ†ä¸è°ƒè¯•ï¼‰ã€`Update()`ï¼ˆæ¯å¸§é€»è¾‘ï¼‰ã€`OnDestroy()`ï¼ˆé”€æ¯å‰æ¸…ç†ï¼‰ã€‚
+- æš´éœ²æ¸²æŸ“æ¥å£ï¼šæ§åˆ¶è´´å›¾æ¥æºã€å¸§ç‡ã€ç¿»è½¬ã€æ—‹è½¬ã€æ¢è½´ä¸ç¼©æ”¾ï¼Œå¹¶èƒ½è¿”å›å½“å‰å¸§åƒç´ ï¼ˆ`PngFrame`ï¼‰ä¾›æ¸²æŸ“å™¨ä½¿ç”¨ã€‚
+- æš´éœ²ç‰©ç†æ¥å£ï¼šä½ç½®/é€Ÿåº¦/åŠ›ã€ç¢°æ’å½¢çŠ¶è®¾ç½®ä¸è¯»å–ï¼ˆ`CF_ShapeWrapper`ï¼‰ã€ç¢°æ’ç±»å‹æ§åˆ¶ã€‚
+- æä¾›ç¢°æ’å›è°ƒåˆ†å‘ï¼šç»Ÿä¸€çš„ `OnCollisionState` ä¼šæ ¹æ®é˜¶æ®µåˆ†å‘è‡³ `OnCollisionEnter/Stay/Exit`ã€‚
+- æ”¯æŒå¯¹è±¡æ ‡ç­¾ï¼ˆ`AddTag`/`HasTag`/`RemoveTag`ï¼‰ä»¥ä¾¿å¿«é€Ÿåˆ†ç±»æˆ–ç­›é€‰ã€‚
 
-## ĞĞÎªÆõÔ¼ÓëÊ¹ÓÃÒªµã
-- ¶ÔÏóÍ¨³£Í¨¹ı `ObjManager` ´´½¨/Ïú»ÙÒÔ»ñµÃ `ObjToken` Óë×Ô¶¯µÄÎïÀí×¢²á/·´×¢²á¡£Ö±½Ó new/delete Ëä¿ÉÓÃµ«²»ÍÆ¼ö¡£
-- `Create` ·µ»ØµÄÊÇ pending token£¨¼û `ObjManager` ÎÄµµ£©£»¶ÔÏóµÄÕæÊµ index/token ÔÚÏÂÒ»´Î `ObjManager::UpdateAll()` Ìá½»½×¶ÎÍê³É¡£
-- `FramelyApply()` ÓÉ `ObjManager` ÔÚÃ¿Ö¡°²È«Ê±»úµ÷ÓÃ£ºÖ´ĞĞ `ApplyForce()`¡¢`ApplyVelocity()`¡¢µ÷ÊÔ»æÖÆ²¢¼ÇÂ¼ÉÏÒ»Ö¡Î»ÖÃ£¨ÓÃÓÚ CCD ºÍµ÷ÊÔ£©¡£
-- µ±ÆôÓÃ `IsColliderRotate()` »ò `IsColliderApplyPivot()` Ê±£¬Åö×²ĞÎ×´»á±»ÊÓÎªĞèÒªÍ¬²½µ½ world-space£¨`BasePhysics::enable_world_shape(true)`£©£¬ÕâÔÚĞÔÄÜÓë¹¦ÄÜÉÏÊÇÈ¨ºâ£º
-  - ÆôÓÃ£ºÅö×²ĞÎ×´»áËæ¾«ÁéĞı×ª/ÊàÖá×Ô¶¯¸üĞÂ£¨¸üÖ±¹Ûµ«¿ÉÄÜÔö¼Ó¼ÆËã£©¡£
-  - ¹Ø±Õ£ºÉÏ²ã¿ÉÒÔ×Ô¼ºÌá¹© world-space ĞÎ×´ÒÔ½ÚÊ¡ÖØ¸´×ª»»¡£
+## ä½¿ç”¨å¥‘çº¦ä¸è¦ç‚¹
+- å¯¹è±¡åº”é€šè¿‡ `ObjManager::Create(...)` åˆ›å»ºä»¥è·å¾— pending tokenï¼›çœŸå® token ä¼šåœ¨ä¸‹ä¸€æ¬¡ `ObjManager::UpdateAll()` çš„æäº¤é˜¶æ®µç”Ÿæˆã€‚ç›´æ¥ä½¿ç”¨ `new`/`delete` ä¸ä¼šè‡ªåŠ¨å‚ä¸ ObjManager ç®¡ç†ä¸ç‰©ç†æ³¨å†Œï¼Œé€šå¸¸ä¸æ¨èã€‚
+- `FramelyApply()` åœ¨æ¯å¸§å®‰å…¨ç‚¹è¢«è°ƒç”¨ï¼šè°ƒç”¨é¡ºåºé€šå¸¸ç”± `ObjManager::UpdateAll()` æ§åˆ¶ï¼Œè¡Œä¸ºåŒ…æ‹¬è°ƒç”¨ `ApplyForce()`ã€`ApplyVelocity()`ã€å¯é€‰è°ƒè¯•ç»˜åˆ¶ä¸è®°å½•ä¸Šä¸€å¸§ä½ç½®ã€‚
+- ç²¾çµä¸ç¢°æ’åŒæ­¥ï¼š
+  - è‹¥å¯ç”¨ `IsColliderRotate()` æˆ– `IsColliderApplyPivot()`ï¼Œ`BaseObject` ä¼šæŠŠç²¾çµçš„æ—‹è½¬/æ¢è½´åŒæ­¥åˆ°ç¢°æ’å™¨ï¼Œå¹¶è°ƒç”¨ `BasePhysics::enable_world_shape(true)` ä»¥å‡å°‘é‡å¤å˜æ¢å¼€é”€ã€‚
+  - å¯æ ¹æ®æ€§èƒ½/è¡Œä¸ºéœ€è¦é€‰æ‹©å…³é—­è¿™äº›åŒæ­¥å¼€å…³ï¼Œä»è€Œç”±ä¸Šå±‚æ‰‹åŠ¨ç»´æŠ¤ world-space å½¢çŠ¶ã€‚
 
-## äÖÈ¾ API ¸ÅÀÀ
-- ×ÊÔ´/Ö¡£º
-  - `void SpriteSetSource(const std::string& path, int count, bool set_shape_aabb = true)`£ºÉèÖÃÌùÍ¼Ô´²¢¿ÉÑ¡µØ»ùÓÚÌùÍ¼ÉèÖÃÄ¬ÈÏ AABB ĞÎ×´¡£
-  - `void SpriteClearPath()`¡¢`bool SpriteHasPath(std::string* out_path = nullptr)`¡£
-  - `PngFrame SpriteGetFrame() const`£º·µ»Øµ±Ç°Ö¡µÄÏñËØÊı¾İ£¨¿¼ÂÇ´¹Ö±Í¼¼¯£©¡£
-- ¶¯»­¿ØÖÆ£º
-  - `void SpriteSetUpdateFreq(int freq)` / `int SpriteGetUpdateFreq() const`£º°´ÓÎÏ·Ö¡¿ØÖÆÖ¡ÂÊ¡£
-- ±ä»»/ÏÔÊ¾£º
-  - `SetRotation` / `Rotate`¡¢`SpriteFlipX/Y`¡¢`ScaleX/ScaleY/Scale`¡¢`SetPivot` / `GetPivot`¡£
-  - `SetVisible(bool)` / `IsVisible()`¡¢`SetDepth(int)` / `GetDepth()` ÓÃÓÚäÖÈ¾ÅÅĞòÓë¿É¼ûĞÔ¿ØÖÆ¡£
+## å¸¸ç”¨ API æ¦‚è§ˆ
+- æ¸²æŸ“ç›¸å…³
+  - `void SpriteSetSource(const std::string& path, int count, bool set_shape_aabb = true)`ï¼šè®¾ç½®è´´å›¾ï¼ˆå‚ç›´å¸§æ•°ä¸º `count`ï¼‰ï¼Œå¯é€‰åŸºäºè´´å›¾è®¾ç½®é»˜è®¤ AABB å½¢çŠ¶ã€‚
+  - `void SpriteClearPath()`ã€`bool SpriteHasPath(std::string* out_path = nullptr)`ã€‚
+  - `PngFrame SpriteGetFrame() const`ï¼šè·å–å½“å‰å¸§åƒç´ ã€‚
+  - `void SpriteSetUpdateFreq(int)` / `int SpriteGetUpdateFreq() const`ï¼šè®¾ç½®åŠ¨ç”»æ›´æ–°é—´éš”ï¼ˆä»¥æ¸¸æˆå¸§ä¸ºå•ä½ï¼‰ã€‚
+  - å˜æ¢/æ˜¾ç¤ºï¼š`SetRotation` / `Rotate`ã€`SpriteFlipX/Y`ã€`ScaleX/ScaleY/Scale`ã€`SetPivot` / `GetPivot`ã€`SetVisible` / `IsVisible`ã€`SetDepth` / `GetDepth`ã€‚
+- ç‰©ç†ä¸å½¢çŠ¶
+  - ä½ç½®/è¿åŠ¨ï¼š`GetPosition`/`SetPosition`ã€`GetVelocity`/`SetVelocity`ã€`GetForce`/`SetForce`ã€`ApplyVelocity(dt)`ã€`ApplyForce(dt)`ã€‚
+  - å½¢çŠ¶ï¼š`SetShape(const CF_ShapeWrapper&)`ã€`GetShape()`ï¼ˆè¿”å› world-spaceï¼Œå¯èƒ½è§¦å‘è½¬æ¢ï¼‰ã€‚
+  - ä¾¿æ·å½¢çŠ¶ï¼š`SetAabb`ã€`SetCircle`ã€`SetCapsule`ã€`SetPoly`ã€`SetCenteredAabb`ã€`SetCenteredCircle`ã€`SetCenteredCapsule`ã€`SetPolyFromLocalVerts`ã€‚
+  - ç¢°æ’ç±»å‹ï¼š`SetColliderType(ColliderType)`ã€`GetColliderType()`ã€‚
+  - ä¸Šä¸€å¸§ä½ç½®ï¼š`GetPrevPosition()`ï¼ˆç”¨äºè¿ç»­ç¢°æ’æ£€æµ‹æˆ–è¿åŠ¨æ’å€¼ï¼‰ã€‚
+- ç¢°æ’å›è°ƒ
+  - `virtual void OnCollisionEnter(const ObjManager::ObjToken& other, const CF_Manifold& manifold) noexcept`
+  - `virtual void OnCollisionStay(const ObjManager::ObjToken& other, const CF_Manifold& manifold) noexcept`
+  - `virtual void OnCollisionExit(const ObjManager::ObjToken& other, const CF_Manifold& manifold) noexcept`
+  - `OnCollisionState` ä¼šæ ¹æ®é˜¶æ®µï¼ˆEnter/Stay/Exitï¼‰åˆ†å‘åˆ°ä¸Šè¿°æ–¹æ³•ï¼›`Exit` é˜¶æ®µçš„ manifold å¯èƒ½ä¸ºç©ºã€‚
 
-## ÎïÀí/ĞÎ×´ API ¸ÅÀÀ
-- Î»ÖÃ/ÔË¶¯£º
-  - `GetPosition()/SetPosition()`¡¢`GetVelocity()/SetVelocity()`¡¢`GetForce()/SetForce()`¡¢`ApplyVelocity(dt)`¡¢`ApplyForce(dt)`¡£
-  - `GetPrevPosition()`£ºÉÏÖ¡Î»ÖÃ£¨ÓÃÓÚÁ¬ĞøÅö×²¼ì²â»ò²åÖµ£©¡£
-- ĞÎ×´£º
-  - `SetShape(const CF_ShapeWrapper&)`¡¢`GetShape()`£¨·µ»Ø world-space£¬¿ÉÄÜ´¥·¢¼ÆËã£©¡£
-  - ±ã½İ£º`SetAabb` / `SetCircle` / `SetCapsule` / `SetPoly` / `SetCenteredAabb` / `SetCenteredCircle` / `SetCenteredCapsule` / `SetPolyFromLocalVerts`¡£
-- Åö×²ÀàĞÍ£º`SetColliderType(ColliderType)`¡¢`GetColliderType()`¡£
-- Åö×²Í¬²½¿ª¹Ø£º`IsColliderRotate()`¡¢`IsColliderApplyPivot()`£¨ÉèÖÃ»á×Ô¶¯¸üĞÂ world-shape Ê¹ physics Ìø¹ıÖØ¸´¼ÆËã£©¡£
+## ç¤ºä¾‹ç”¨æ³•ï¼ˆæ¦‚å¿µæ€§ï¼‰
+- åœ¨æ´¾ç”Ÿç±»ä¸­è¦†å†™ `Start()` åˆå§‹åŒ–èµ„æºä¸ç¢°æ’å½¢çŠ¶ï¼Œåœ¨ `Update()` ä¸­å®ç°è¡Œä¸ºé€»è¾‘ï¼Œåœ¨ `OnCollisionEnter` ä¸­å¤„ç†ç¢°æ’äº‹ä»¶ã€‚åœ¨åˆ›å»ºå¯¹è±¡æ—¶é€šè¿‡ `ObjManager::Create<T>(...)` å–å¾— token å¹¶äº¤ç”± ObjManager ç®¡ç†ã€‚
 
-## Åö×²»Øµ÷£¨¸²Ğ´Ê¾Àı£©
-- ¸²Ğ´ÒÔÏÂº¯Êı´¦ÀíÅö×²£º
-  - `virtual void OnCollisionEnter(const ObjManager::ObjToken&, const CF_Manifold&) noexcept`
-  - `virtual void OnCollisionStay(...) noexcept`
-  - `virtual void OnCollisionExit(...) noexcept`
-- `OnCollisionState` Ä¬ÈÏ½«½×¶Î·Ö·¢µ½ÒÔÉÏÈı¸öº¯Êı£»`Exit` ½×¶ÎµÄ manifold ¿ÉÄÜÎª¿Õ£¨È¡¾öÓÚÎïÀíÏµÍ³µÄÊµÏÖ£©¡£
-
-## Ê¾Àı
-¼û²Ö¿âÖĞ `objects/` ÏÂÊ¾ÀıÀà£¨ÎÄµµÄÚÊ¾ÀıÒà¿É²Î¿¼£©¡£
-
-## ÊµÏÖ×¢ÒâÊÂÏî
-- `BaseObject` ¼Ì³Ğ×Ô `BasePhysics`£¨¹«¿ª£©Óë `PngSprite`£¨Ë½ÓĞ£©£¬ÒÔ¸´ÓÃÆä¹¦ÄÜ²¢ÔÚ±¾ÀàÖĞÍ³Ò»¶ÔÍâ½Ó¿Ú¡£
-- ½¨ÒéÍ¨¹ı `ObjManager::Create(...)` »ñÈ¡¶ÔÏó²¢ÒÀÀµ `ObjManager::UpdateAll()` ÔÚÕıÈ·Ê±»úÍê³ÉºÏ²¢ÓëÎïÀí×¢²á¡£
+## å®ç°å¤‡æ³¨ä¸æœ€ä½³å®è·µ
+- `BaseObject` å…¬å¼€ç»§æ‰¿ `BasePhysics`ï¼ˆä»¥ç›´æ¥å¤ç”¨ç‰©ç†æ¥å£ï¼‰ï¼Œç§æœ‰ç»§æ‰¿ `PngSprite`ï¼ˆä»¥å°è£…æ¸²æŸ“ç»†èŠ‚å¹¶ç»Ÿä¸€å¯¹å¤– APIï¼‰ã€‚å› æ­¤å½“ä¿®æ”¹ç²¾çµçš„æ—‹è½¬/æ¢è½´/ç¼©æ”¾æ—¶åº”è€ƒè™‘æ˜¯å¦åŒæ­¥åˆ°ç‰©ç†å±‚ã€‚
+- å»ºè®®ï¼š
+  - åœ¨ä¸»å¾ªç¯ä¸­æŒ‰é¡ºåºè°ƒç”¨ `ObjManager::UpdateAll()` â†’ `DrawingSequence::DrawAll()` â†’ æ¸²æŸ“ `BlitAll()`ï¼Œä»¥ç¡®ä¿å½“å¸§çš„é€»è¾‘å˜æ›´è¢«åŠæ—¶ä¸Šä¼ å¹¶æ˜¾ç¤ºã€‚
+  - åœ¨ç¢°æ’å›è°ƒä¸­é¿å…ç›´æ¥ delete å¯¹è±¡ï¼›åº”ä½¿ç”¨ `ObjManager::Destroy(token)` ä»¥åœ¨å®‰å…¨ç‚¹å®Œæˆé”€æ¯ã€‚
+  - åœ¨æ€§èƒ½æ•æ„Ÿè·¯å¾„ä¸‹ï¼Œå¯ä»¥å…³é—­ `IsColliderRotate()` / `IsColliderApplyPivot()` å¹¶æ‰‹åŠ¨ç»´æŠ¤ world-space å½¢çŠ¶ä»¥é¿å…é‡å¤è®¡ç®—ã€‚

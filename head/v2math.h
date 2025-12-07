@@ -4,9 +4,9 @@
 
 inline constexpr float pi = 3.14159265358979f;
 
-// 2D ÏòÁ¿»ù´¡ÊıÑ§¹¤¾ß£¨ÃæÏòÊ¹ÓÃÕßµÄ¼òµ¥½Ó¿Ú£©
-// ËµÃ÷£ºÕâĞ©º¯Êı·â×°ÁË Cute Framework µÄ CF_V2 ¼° math ²Ù×÷£¬Ä¿±êÊÇÌá¹©ÇáÁ¿ÇÒÎŞÒì³£µÄ¹¤¾ßº¯Êı¡£
-// ×¢ÒâÊıÖµÎÈ¶¨ĞÔ£ºnormalized/length µÈÔÚ½Ó½ü 0 µÄÊäÈëÏÂ×öÁË±£»¤´¦ÀíÒÔ±ÜÃâ³ıÒÔÁã¡£
+// 2D å‘é‡åŸºç¡€æ•°å­¦å·¥å…·ï¼ˆé¢å‘ä½¿ç”¨è€…çš„ç®€å•æ¥å£ï¼‰
+// è¯´æ˜ï¼šè¿™äº›å‡½æ•°å°è£…äº† Cute Framework çš„ CF_V2 åŠ math æ“ä½œï¼Œç›®æ ‡æ˜¯æä¾›è½»é‡ä¸”æ— å¼‚å¸¸çš„å·¥å…·å‡½æ•°ã€‚
+// æ³¨æ„æ•°å€¼ç¨³å®šæ€§ï¼šnormalized/length ç­‰åœ¨æ¥è¿‘ 0 çš„è¾“å…¥ä¸‹åšäº†ä¿æŠ¤å¤„ç†ä»¥é¿å…é™¤ä»¥é›¶ã€‚
 namespace v2math {
 	inline CF_V2 zero() { return CF_V2{ 0.0f, 0.0f }; }
 	inline float length(const CF_V2& vect) noexcept { return cf_sqrt(vect.x * vect.x + vect.y * vect.y); }
@@ -36,7 +36,7 @@ namespace v2math {
 		return CF_V2{ cf_cos(angle_rad), cf_sin(angle_rad) };
 	}
 	inline float get_angle(const CF_V2& dir) noexcept {
-		return cf_atan2(dir.y, dir.x); // ·µ»ØÖµ·¶Î§ [-pi, pi]
+		return cf_atan2(dir.y, dir.x); // è¿”å›å€¼èŒƒå›´ [-pi, pi]
 	}
 	inline CF_V2 angled(const CF_V2& v, float angle_rad) noexcept {
 		float len = length(v);

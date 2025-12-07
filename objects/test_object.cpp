@@ -4,17 +4,17 @@ static constexpr float force = 0.5f;
 
 void TestObject::Start()
 {
-	// ½öÉèÖÃÌùÍ¼Â·¾¶£¬ÆäËû²ÎÊıÊ¹ÓÃÄ¬ÈÏÖµ
+	// ä»…è®¾ç½®è´´å›¾è·¯å¾„ï¼Œå…¶ä»–å‚æ•°ä½¿ç”¨é»˜è®¤å€¼
 	SpriteSetSource("/sprites/plate.png", 1);
 }
 
 void TestObject::Update()
 {
-	// Ê¹ÓÃ BaseObject ±©Â¶µÄÎïÀí½Ó¿ÚÀ´ĞŞ¸ÄËÙ¶È/ÊÜÁ¦£º
-	// 1) ¸ù¾İ°´¼üÌí¼ÓÁ¦£¨SetForce£©
-	// 2) ½«Á¦»ı·Öµ½ËÙ¶È£¨ApplyForce£©
-	// 3) ¿ÉÑ¡×èÄá£¨SetVelocity£©
-	// 4) ½«ËÙ¶È»ı·Öµ½Î»ÖÃ£¨ApplyVelocity£©
+	// ä½¿ç”¨ BaseObject æš´éœ²çš„ç‰©ç†æ¥å£æ¥ä¿®æ”¹é€Ÿåº¦/å—åŠ›ï¼š
+	// 1) æ ¹æ®æŒ‰é”®æ·»åŠ åŠ›ï¼ˆSetForceï¼‰
+	// 2) å°†åŠ›ç§¯åˆ†åˆ°é€Ÿåº¦ï¼ˆApplyForceï¼‰
+	// 3) å¯é€‰é˜»å°¼ï¼ˆSetVelocityï¼‰
+	// 4) å°†é€Ÿåº¦ç§¯åˆ†åˆ°ä½ç½®ï¼ˆApplyVelocityï¼‰
 
 	int dir = 0;
 	if (cf_key_down(CF_KEY_LEFT)) {
@@ -24,11 +24,11 @@ void TestObject::Update()
 		dir++;
 	}
 
-	// Ìí¼ÓÁ¦
+	// æ·»åŠ åŠ›
 	SetForce(dir * v2math::angled(CF_V2(force), GetRotation()));
 
-	// ¼òµ¥Ë®Æ½·½Ïò×èÄá£ºÎŞ°´¼üÊ±¼õËÙ£¬±ÜÃâÎŞÏŞ»¬¶¯
-	// ÕâÀïÊ¹ÓÃÒÑÓĞµÄËÙ¶È½Ó¿ÚÀ´¶ÁÈ¡/Ğ´ÈëËÙ¶È
+	// ç®€å•æ°´å¹³æ–¹å‘é˜»å°¼ï¼šæ— æŒ‰é”®æ—¶å‡é€Ÿï¼Œé¿å…æ— é™æ»‘åŠ¨
+	// è¿™é‡Œä½¿ç”¨å·²æœ‰çš„é€Ÿåº¦æ¥å£æ¥è¯»å–/å†™å…¥é€Ÿåº¦
 	CF_V2 vel = GetVelocity();
 	constexpr float damping = 0.90f;
 	if (!cf_key_down(CF_KEY_LEFT) && !cf_key_down(CF_KEY_RIGHT)) {

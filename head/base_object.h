@@ -3,28 +3,28 @@
 #include "png_sprite.h"
 #include <string>
 #include <utility>
-#include <vector> // ÓÃÓÚ¶à±ßĞÎ¶¥µãÊı¾İ´«µİ
-#include <iostream> // ´íÎó/Õï¶ÏÊä³ö
+#include <vector> // ç”¨äºå¤šè¾¹å½¢é¡¶ç‚¹æ•°æ®ä¼ é€’
+#include <iostream> // é”™è¯¯/è¯Šæ–­è¾“å‡º
 #include <cmath> // fabs
-#include <unordered_set> // ÓÃÓÚ tags
+#include <unordered_set> // ç”¨äº tags
 
 #include "obj_manager.h"
 #include "debug_config.h"
 #include "input.h"
 
-// BaseObject ÊÇÃæÏòÊ¹ÓÃÕßµÄÓÎÏ·¶ÔÏó»ùÀà£¬ÕûºÏäÖÈ¾£¨PngSprite£©ÓëÎïÀí£¨BasePhysics£©¡£
-// Éè¼ÆÄ¿±êÓëÆõÔ¼£º
-// - ×÷ÎªÓÎÏ·¶ÔÏóµÄ»ùÀà£¬ÎªÉÏ²ãÌá¹©Í³Ò»µÄäÖÈ¾/ÎïÀí½Ó¿ÚÓëÉúÃüÖÜÆÚ¹³×Ó£¨Start/Update/OnDestroy/Åö×²»Øµ÷£©¡£
-// - ²»Ö±½Ó¹ÜÀí¶ÔÏóµÄ´´½¨/Ïú»ÙÉúÃüÖÜÆÚ£¨½¨ÒéÍ¨¹ı ObjManager ½øĞĞ¹ÜÀíÒÔ»ñµÃ ObjToken Óë°²È«µÄÑÓ³Ù´´½¨/Ïú»ÙÓïÒå£©¡£
-// - ½« PngSprite ×÷ÎªË½ÓĞ»ùÀàÒÔ¸´ÓÃÌùÍ¼/Ö¡Âß¼­£¬µ«¶ÔÉÏ²ãÒÔ PascalCase ±©Â¶±ã½İ·½·¨£¨ÀıÈç GetPosition/SetPosition£©¡£
-// - ½« BasePhysics ¹«¿ª¼Ì³ĞÒÔÖ±½Ó¸´ÓÃÎ»ÖÃ/ËÙ¶È/ĞÎ×´Âß¼­£¬µ«¶ÔÍâ±©Â¶µÄ setter/getter Ê¹ÓÃ PascalCase ½øĞĞ·â×°ÒÔ±ã½Å±¾²ãµ÷ÓÃ¡£
-// Ê¹ÓÃ½¨Òé£º
-// - ÔÚÅÉÉúÀàÖĞ¸²¸Ç Start()¡¢Update() ÊµÏÖĞĞÎª¡£ÔÚĞèÒªÏìÓ¦Åö×²Ê±¸²Ğ´ OnCollisionEnter/Stay/Exit£¨Ê¹ÓÃ ObjToken ±êÊ¶Åö×²¶ÔÏó£©¡£
-// - Í¨¹ı ObjManager::Create(...) »ñÈ¡ pending token£»ÈôĞèÒª·ÃÎÊÉĞÎ´Ìá½»µÄ¶ÔÏó¿ÉÍ¨¹ı ObjManager µÄ pending token ·ÃÎÊ£¨²Î¼û ObjManager ĞĞÎª£©¡£
-// - µ±ĞèÒªäÖÈ¾ÓëÅö×²±£³ÖÒ»ÖÂÊ±£¬¿ÉÆôÓÃ IsColliderRotate/IsColliderApplyPivot£¬Ê¹Åö×²ĞÎ×´Ëæ¾«ÁéĞı×ª/ÊàÖá×Ô¶¯¸üĞÂ¡£
-// ×¢ÒâÊÂÏî£º
-// - BaseObject Ä¬ÈÏÆôÓÃ m_isColliderRotate = true, m_isColliderApplyPivot = true£¬¶şÕßÓÃÓÚ¾ö¶¨ÊÇ·ñ½« local shape ´¦ÀíÎª world-shape£¨ĞÔÄÜÈ¨ºâ£©¡£
-// - ¹¹Ôìº¯Êı²»»á°Ñ¶ÔÏó×¢²áµ½ ObjManager£»ÇëÊ¹ÓÃ ObjManager ´´½¨¶ÔÏóÒÔ»ñµÃÕıÈ·µÄ token ÓëÎïÀí×¢²á¡£
+// BaseObject æ˜¯é¢å‘ä½¿ç”¨è€…çš„æ¸¸æˆå¯¹è±¡åŸºç±»ï¼Œæ•´åˆæ¸²æŸ“ï¼ˆPngSpriteï¼‰ä¸ç‰©ç†ï¼ˆBasePhysicsï¼‰ã€‚
+// è®¾è®¡ç›®æ ‡ä¸å¥‘çº¦ï¼š
+// - ä½œä¸ºæ¸¸æˆå¯¹è±¡çš„åŸºç±»ï¼Œä¸ºä¸Šå±‚æä¾›ç»Ÿä¸€çš„æ¸²æŸ“/ç‰©ç†æ¥å£ä¸ç”Ÿå‘½å‘¨æœŸé’©å­ï¼ˆStart/Update/OnDestroy/ç¢°æ’å›è°ƒï¼‰ã€‚
+// - ä¸ç›´æ¥ç®¡ç†å¯¹è±¡çš„åˆ›å»º/é”€æ¯ç”Ÿå‘½å‘¨æœŸï¼ˆå»ºè®®é€šè¿‡ ObjManager è¿›è¡Œç®¡ç†ä»¥è·å¾— ObjToken ä¸å®‰å…¨çš„å»¶è¿Ÿåˆ›å»º/é”€æ¯è¯­ä¹‰ï¼‰ã€‚
+// - å°† PngSprite ä½œä¸ºç§æœ‰åŸºç±»ä»¥å¤ç”¨è´´å›¾/å¸§é€»è¾‘ï¼Œä½†å¯¹ä¸Šå±‚ä»¥ PascalCase æš´éœ²ä¾¿æ·æ–¹æ³•ï¼ˆä¾‹å¦‚ GetPosition/SetPositionï¼‰ã€‚
+// - å°† BasePhysics å…¬å¼€ç»§æ‰¿ä»¥ç›´æ¥å¤ç”¨ä½ç½®/é€Ÿåº¦/å½¢çŠ¶é€»è¾‘ï¼Œä½†å¯¹å¤–æš´éœ²çš„ setter/getter ä½¿ç”¨ PascalCase è¿›è¡Œå°è£…ä»¥ä¾¿è„šæœ¬å±‚è°ƒç”¨ã€‚
+// ä½¿ç”¨å»ºè®®ï¼š
+// - åœ¨æ´¾ç”Ÿç±»ä¸­è¦†ç›– Start()ã€Update() å®ç°è¡Œä¸ºã€‚åœ¨éœ€è¦å“åº”ç¢°æ’æ—¶è¦†å†™ OnCollisionEnter/Stay/Exitï¼ˆä½¿ç”¨ ObjToken æ ‡è¯†ç¢°æ’å¯¹è±¡ï¼‰ã€‚
+// - é€šè¿‡ ObjManager::Create(...) è·å– pending tokenï¼›è‹¥éœ€è¦è®¿é—®å°šæœªæäº¤çš„å¯¹è±¡å¯é€šè¿‡ ObjManager çš„ pending token è®¿é—®ï¼ˆå‚è§ ObjManager è¡Œä¸ºï¼‰ã€‚
+// - å½“éœ€è¦æ¸²æŸ“ä¸ç¢°æ’ä¿æŒä¸€è‡´æ—¶ï¼Œå¯å¯ç”¨ IsColliderRotate/IsColliderApplyPivotï¼Œä½¿ç¢°æ’å½¢çŠ¶éšç²¾çµæ—‹è½¬/æ¢è½´è‡ªåŠ¨æ›´æ–°ã€‚
+// æ³¨æ„äº‹é¡¹ï¼š
+// - BaseObject é»˜è®¤å¯ç”¨ m_isColliderRotate = true, m_isColliderApplyPivot = trueï¼ŒäºŒè€…ç”¨äºå†³å®šæ˜¯å¦å°† local shape å¤„ç†ä¸º world-shapeï¼ˆæ€§èƒ½æƒè¡¡ï¼‰ã€‚
+// - æ„é€ å‡½æ•°ä¸ä¼šæŠŠå¯¹è±¡æ³¨å†Œåˆ° ObjManagerï¼›è¯·ä½¿ç”¨ ObjManager åˆ›å»ºå¯¹è±¡ä»¥è·å¾—æ­£ç¡®çš„ token ä¸ç‰©ç†æ³¨å†Œã€‚
 class BaseObject;
 void RenderBaseObjectCollisionDebug(const BaseObject* obj) noexcept;
 
@@ -35,39 +35,39 @@ public:
     BaseObject() noexcept
         : BasePhysics(), PngSprite("", 1, 1)
     {
-        // ³õÊ¼»¯Î»ÖÃ/ËÙ¶È/Á¦Óë¾«ÁéÖ¡ÂÊ£¬È·±£Ä¬ÈÏ×´Ì¬¿ÉÖ±½ÓÊ¹ÓÃ
+        // åˆå§‹åŒ–ä½ç½®/é€Ÿåº¦/åŠ›ä¸ç²¾çµå¸§ç‡ï¼Œç¡®ä¿é»˜è®¤çŠ¶æ€å¯ç›´æ¥ä½¿ç”¨
         set_position(CF_V2{ 0.0f, 0.0f });
         set_velocity(CF_V2{ 0.0f, 0.0f });
         set_force(CF_V2{ 0.0f, 0.0f });
         SetFrameDelay(m_sprite_update_freq);
         update_world_shape_flag();
-		tags.reserve(5); // Ô¤ÁôÒ»Ğ©¿Õ¼äÒÔ¼õÉÙ¶¯Ì¬·ÖÅä
+		tags.reserve(5); // é¢„ç•™ä¸€äº›ç©ºé—´ä»¥å‡å°‘åŠ¨æ€åˆ†é…
     }
 
-    // Ã¿Ö¡ÒıÇæµ÷ÓÃµã£¨ÓÉ ObjManager µÄ UpdateAll ÔÚºÏÊÊÊ±»ú´¥·¢£©£º
-    // - ApplyForce/ApplyVelocity£¨ÎïÀí»ı·Ö£© -> DebugDraw -> ¼ÇÂ¼ÉÏÒ»Ö¡Î»ÖÃ£¨ÓÃÓÚÁ¬ĞøÅö×²¼ì²â/µ÷ÊÔ£©
-    // FramelyApply ²»½øĞĞÒì³£Å×³ö£¨noexcept£©£¬±£Ö¤ÔÚ±éÀú¹ı³ÌÖĞ°²È«¡£
+    // æ¯å¸§å¼•æ“è°ƒç”¨ç‚¹ï¼ˆç”± ObjManager çš„ UpdateAll åœ¨åˆé€‚æ—¶æœºè§¦å‘ï¼‰ï¼š
+    // - ApplyForce/ApplyVelocityï¼ˆç‰©ç†ç§¯åˆ†ï¼‰ -> DebugDraw -> è®°å½•ä¸Šä¸€å¸§ä½ç½®ï¼ˆç”¨äºè¿ç»­ç¢°æ’æ£€æµ‹/è°ƒè¯•ï¼‰
+    // FramelyApply ä¸è¿›è¡Œå¼‚å¸¸æŠ›å‡ºï¼ˆnoexceptï¼‰ï¼Œä¿è¯åœ¨éå†è¿‡ç¨‹ä¸­å®‰å…¨ã€‚
     void FramelyApply() noexcept
     {
-        // Ó¦ÓÃÁ¦ÓëËÙ¶È¸üĞÂÎ»ÖÃ£¨»ùÓÚ BasePhysics µÄÊµÏÖ£©
+        // åº”ç”¨åŠ›ä¸é€Ÿåº¦æ›´æ–°ä½ç½®ï¼ˆåŸºäº BasePhysics çš„å®ç°ï¼‰
         ApplyForce();
         ApplyVelocity();
 
-        // ¿ÉÑ¡µÄµ÷ÊÔ»æÖÆ£¨ÓÉ±àÒëÑ¡Ïî¿ØÖÆ£©
+        // å¯é€‰çš„è°ƒè¯•ç»˜åˆ¶ï¼ˆç”±ç¼–è¯‘é€‰é¡¹æ§åˆ¶ï¼‰
         DebugDraw();
 
-        // ¼ÇÂ¼ÉÏÒ»Ö¡Î»ÖÃ£¨±ãÓÚ CCD / µ÷ÊÔ£©
+        // è®°å½•ä¸Šä¸€å¸§ä½ç½®ï¼ˆä¾¿äº CCD / è°ƒè¯•ï¼‰
         m_prev_position = get_position();
     }
 
-    // ÉúÃüÖÜÆÚ¹³×Ó£ºÔÚ¶ÔÏó±»´´½¨²¢ Start() ±»µ÷ÓÃ£¨Í¨¹ı ObjManager::CreateEntry ÔÚ pending ½×¶ÎÖ´ĞĞ£©
-    // - ¸²Ğ´ Start ÓÃÓÚ³õÊ¼»¯×ÊÔ´¡¢×¢²áÊÂ¼şµÈ£¨Ó¦È·±£Òì³£°²È«£©
+    // ç”Ÿå‘½å‘¨æœŸé’©å­ï¼šåœ¨å¯¹è±¡è¢«åˆ›å»ºå¹¶ Start() è¢«è°ƒç”¨ï¼ˆé€šè¿‡ ObjManager::CreateEntry åœ¨ pending é˜¶æ®µæ‰§è¡Œï¼‰
+    // - è¦†å†™ Start ç”¨äºåˆå§‹åŒ–èµ„æºã€æ³¨å†Œäº‹ä»¶ç­‰ï¼ˆåº”ç¡®ä¿å¼‚å¸¸å®‰å…¨ï¼‰
     virtual void Start(){}
-    // Ã¿Ö¡¸üĞÂ£ºÔÚ ObjManager::UpdateAll µÄ Update ½×¶Î±»µ÷ÓÃ
+    // æ¯å¸§æ›´æ–°ï¼šåœ¨ ObjManager::UpdateAll çš„ Update é˜¶æ®µè¢«è°ƒç”¨
     virtual void Update(){}
 
-    // »ñÈ¡µ±Ç°ÓÃÓÚäÖÈ¾µÄÖ¡£¨¿¼ÂÇ´¹Ö±Í¼¼¯µÄ¶àĞĞÖ¡£©
-    // - ·µ»ØÖµÎª PngFrame£¬°üº¬ÏñËØÓë³ß´çĞÅÏ¢£¬¹©äÖÈ¾²ãÊ¹ÓÃ
+    // è·å–å½“å‰ç”¨äºæ¸²æŸ“çš„å¸§ï¼ˆè€ƒè™‘å‚ç›´å›¾é›†çš„å¤šè¡Œå¸§ï¼‰
+    // - è¿”å›å€¼ä¸º PngFrameï¼ŒåŒ…å«åƒç´ ä¸å°ºå¯¸ä¿¡æ¯ï¼Œä¾›æ¸²æŸ“å±‚ä½¿ç”¨
     PngFrame SpriteGetFrame() const
     {
         if (m_vertical_frame_count <= 1) {
@@ -76,11 +76,11 @@ public:
         return GetCurrentFrameWithTotal(m_vertical_frame_count);
     }
 
-    // ´¹Ö±Ö¡Êı£¨Í¼¼¯¶àĞĞÊ±Ê¹ÓÃ£©
+    // å‚ç›´å¸§æ•°ï¼ˆå›¾é›†å¤šè¡Œæ—¶ä½¿ç”¨ï¼‰
     int SpriteGetVerticalFrameCount() const noexcept { return m_vertical_frame_count; }
 
-    // ¿ØÖÆ¾«Áé¶¯»­¸üĞÂÆµÂÊ£¨ÒÔÓÎÏ·Ö¡Îªµ¥Î»£©
-    // - freq ±ØĞë´óÓÚ 0£¨·ñÔò×Ô¶¯ÉèÎª 1£©
+    // æ§åˆ¶ç²¾çµåŠ¨ç”»æ›´æ–°é¢‘ç‡ï¼ˆä»¥æ¸¸æˆå¸§ä¸ºå•ä½ï¼‰
+    // - freq å¿…é¡»å¤§äº 0ï¼ˆå¦åˆ™è‡ªåŠ¨è®¾ä¸º 1ï¼‰
     void SpriteSetUpdateFreq(int freq) noexcept
     {
         m_sprite_update_freq = (freq > 0 ? freq : 1);
@@ -88,24 +88,24 @@ public:
     }
     int SpriteGetUpdateFreq() const noexcept { return m_sprite_update_freq; }
 
-    // ¾«Áé×ÊÔ´½Ó¿Ú£ºÉèÖÃ/Çå³ıÂ·¾¶²¢×Ô¶¯ÔÚÓĞ×ÊÔ´Ê±×¢²áµ½ DrawingSequence£¨ÊµÏÖÎ»ÓÚ cpp / äÖÈ¾²ã£©
-    // - set_shape_aabb Îª true Ê±»á×Ô¶¯»ùÓÚÌùÍ¼³ß´çÉèÖÃÒ»¸öÖĞĞÄ¶ÔÆëµÄ AABB£¨±ãÓÚ¿ìËÙµ÷ÊÔ/Ä¬ÈÏÅö×²£©
+    // ç²¾çµèµ„æºæ¥å£ï¼šè®¾ç½®/æ¸…é™¤è·¯å¾„å¹¶è‡ªåŠ¨åœ¨æœ‰èµ„æºæ—¶æ³¨å†Œåˆ° DrawingSequenceï¼ˆå®ç°ä½äº cpp / æ¸²æŸ“å±‚ï¼‰
+    // - set_shape_aabb ä¸º true æ—¶ä¼šè‡ªåŠ¨åŸºäºè´´å›¾å°ºå¯¸è®¾ç½®ä¸€ä¸ªä¸­å¿ƒå¯¹é½çš„ AABBï¼ˆä¾¿äºå¿«é€Ÿè°ƒè¯•/é»˜è®¤ç¢°æ’ï¼‰
     void SpriteSetSource(const std::string& path, int count, bool set_shape_aabb = true) noexcept;
     void SpriteClearPath() noexcept;
 
-    // ²éÑ¯ÊÇ·ñÉèÖÃÁË×ÊÔ´Â·¾¶£¨¿ÉÑ¡Êä³öµ±Ç°Â·¾¶£©
+    // æŸ¥è¯¢æ˜¯å¦è®¾ç½®äº†èµ„æºè·¯å¾„ï¼ˆå¯é€‰è¾“å‡ºå½“å‰è·¯å¾„ï¼‰
     bool SpriteHasPath(std::string* out_path = nullptr) const noexcept { return HasPath(out_path); }
 
-    // ¿É¼ûĞÔ/Éî¶È¿ØÖÆ£¨ÓÃÓÚÍ³Ò»äÖÈ¾ÅÅĞò£©
-    // - äÖÈ¾Æ÷Ó¦Ê¹ÓÃ IsVisible()/GetDepth() ¾ö¶¨ÊÇ·ñ»æÖÆÓë»æÖÆË³Ğò
+    // å¯è§æ€§/æ·±åº¦æ§åˆ¶ï¼ˆç”¨äºç»Ÿä¸€æ¸²æŸ“æ’åºï¼‰
+    // - æ¸²æŸ“å™¨åº”ä½¿ç”¨ IsVisible()/GetDepth() å†³å®šæ˜¯å¦ç»˜åˆ¶ä¸ç»˜åˆ¶é¡ºåº
     void SetVisible(bool v) noexcept { m_visible = v; }
     bool IsVisible() const noexcept { return m_visible; }
 
     void SetDepth(int d) noexcept { m_depth = d; }
     int GetDepth() const noexcept { return m_depth; }
 
-    // Ğı×ª/·­×ª/ÊàÖá£º¾«Áé²ãÓëÅö×²²ã¿ÉÒÔÑ¡ÔñĞÔÍ¬²½
-    // - SetRotation/Rotate »á¸üĞÂ PngSprite µÄĞı×ª£¬²¢ÔÚ IsColliderRotate() ÆôÓÃÊ±Í¬²½µ½ BasePhysics£¨´¥·¢ world-shape ÖØ¼ÆËã£©
+    // æ—‹è½¬/ç¿»è½¬/æ¢è½´ï¼šç²¾çµå±‚ä¸ç¢°æ’å±‚å¯ä»¥é€‰æ‹©æ€§åŒæ­¥
+    // - SetRotation/Rotate ä¼šæ›´æ–° PngSprite çš„æ—‹è½¬ï¼Œå¹¶åœ¨ IsColliderRotate() å¯ç”¨æ—¶åŒæ­¥åˆ° BasePhysicsï¼ˆè§¦å‘ world-shape é‡è®¡ç®—ï¼‰
     float GetRotation() const noexcept { return PngSprite::GetSpriteRotation(); }
     void SetRotation(float rot) noexcept
     {
@@ -126,14 +126,14 @@ public:
         }
     }
 
-    // ¾«Áé·­×ª API£º½öĞŞ¸Ä±êÖ¾£¬Êµ¼ÊäÖÈ¾²ãĞè¶ÁÈ¡ m_flip_x/m_flip_y »òÍ¨¹ı SpriteGetFlipX/Y »ñÈ¡
+    // ç²¾çµç¿»è½¬ APIï¼šä»…ä¿®æ”¹æ ‡å¿—ï¼Œå®é™…æ¸²æŸ“å±‚éœ€è¯»å– m_flip_x/m_flip_y æˆ–é€šè¿‡ SpriteGetFlipX/Y è·å–
     bool SpriteGetFlipX() { return m_flip_x; }
     bool SpriteGetFlipY() { return m_flip_y; }
     void SpriteFlipX(bool x) { m_flip_x = x; }
     void SpriteFlipY(bool y) { m_flip_y = y; }
     void SpriteFlipX() { m_flip_x = !m_flip_x; }
     void SpriteFlipY() { m_flip_y = !m_flip_y; }
-	// Ëõ·Å£ºÍ¬²½ PngSprite Óë BasePhysics£¨Ó°Ïì world-shape ¼ÆËã£©
+	// ç¼©æ”¾ï¼šåŒæ­¥ PngSprite ä¸ BasePhysicsï¼ˆå½±å“ world-shape è®¡ç®—ï¼‰
 	float GetScaleX() const noexcept { return m_scale_x; }
     void ScaleX(float sx) noexcept { PngSprite::set_scale_x(sx); BasePhysics::scale_x(sx); m_scale_x = sx; }
 	float GetScaleY() const noexcept { return m_scale_y; }
@@ -143,11 +143,11 @@ public:
 		PngSprite::set_scale_y(s); BasePhysics::scale_y(s); m_scale_y = s;
 	}
 
-    // ÊàÖá£¨pivot£©Ïà¹Ø£º
-    // - GetPivot ·µ»ØÏñËØ×ø±ê£¨Ïà¶ÔÓÚÌùÍ¼ÖĞĞÄ£©
-    // - SetPivot ½ÓÊÜÏà¶ÔÖµ£¨ÀıÈç (0,0)=ÖĞĞÄ, (1,1)=ÓÒÉÏ£©£¬²¢ÔÚ IsColliderApplyPivot ÆôÓÃÊ±¶ÔÅö×²Æ÷½øĞĞÎ¢µ÷
+    // æ¢è½´ï¼ˆpivotï¼‰ç›¸å…³ï¼š
+    // - GetPivot è¿”å›åƒç´ åæ ‡ï¼ˆç›¸å¯¹äºè´´å›¾ä¸­å¿ƒï¼‰
+    // - SetPivot æ¥å—ç›¸å¯¹å€¼ï¼ˆä¾‹å¦‚ (0,0)=ä¸­å¿ƒ, (1,1)=å³ä¸Šï¼‰ï¼Œå¹¶åœ¨ IsColliderApplyPivot å¯ç”¨æ—¶å¯¹ç¢°æ’å™¨è¿›è¡Œå¾®è°ƒ
     CF_V2 GetPivot() const noexcept { return PngSprite::get_pivot(); }
-	// ÉèÖÃÏà¶ÔÓÚÌùÍ¼ÖĞĞÄµÄÊàÖáµã£¬ÀıÈç (0,0) ÎªÖĞĞÄ£¬(1,1) ÎªÓÒÉÏ½Ç£¬(-1,-1) Îª×óÏÂ½Ç
+	// è®¾ç½®ç›¸å¯¹äºè´´å›¾ä¸­å¿ƒçš„æ¢è½´ç‚¹ï¼Œä¾‹å¦‚ (0,0) ä¸ºä¸­å¿ƒï¼Œ(1,1) ä¸ºå³ä¸Šè§’ï¼Œ(-1,-1) ä¸ºå·¦ä¸‹è§’
     void SetPivot(float x_rel, float y_rel) noexcept {
 		float scale_x = GetScaleX();
 		float scale_y = GetScaleY();
@@ -166,7 +166,7 @@ public:
 		ScaleY(scale_y);
     }
 
-    // ×éºÏµÄÉèÖÃº¯Êı£¬±ã½İ³õÊ¼»¯¾«Áé×ÊÔ´ÓëÊôĞÔ
+    // ç»„åˆçš„è®¾ç½®å‡½æ•°ï¼Œä¾¿æ·åˆå§‹åŒ–ç²¾çµèµ„æºä¸å±æ€§
     void SpriteSetStats(const std::string& path, int vertical_frame_count, int update_freq, int depth, bool set_shape_aabb = true) noexcept
     {
         SpriteSetSource(path, vertical_frame_count, set_shape_aabb);
@@ -174,8 +174,8 @@ public:
         SetDepth(depth);
     }
 
-    // ¿ØÖÆÅö×²Æ÷ÊÇ·ñËæ¾«ÁéĞı×ªÓëÊàÖáÉèÖÃÍ¬²½
-    // - ·µ»Øµ±Ç°±êÖ¾£»ÉèÖÃ±êÖ¾ºó»áµ÷ÓÃ update_world_shape_flag() À´¾ö¶¨ÊÇ·ñ¿ªÆô world-shape ÓÅ»¯
+    // æ§åˆ¶ç¢°æ’å™¨æ˜¯å¦éšç²¾çµæ—‹è½¬ä¸æ¢è½´è®¾ç½®åŒæ­¥
+    // - è¿”å›å½“å‰æ ‡å¿—ï¼›è®¾ç½®æ ‡å¿—åä¼šè°ƒç”¨ update_world_shape_flag() æ¥å†³å®šæ˜¯å¦å¼€å¯ world-shape ä¼˜åŒ–
     bool IsColliderRotate() const noexcept { return m_isColliderRotate; }
     bool IsColliderRotate(bool v) noexcept { 
         m_isColliderRotate = v; 
@@ -190,7 +190,7 @@ public:
 		return m_isColliderApplyPivot;
     }
 
-    // ½« BasePhysics µÄ³£ÓÃ½Ó¿ÚÒÔ PascalCase ±©Â¶¸øÉÏ²ã£¬±ãÓÚ½Å±¾/Íâ²¿µ÷ÓÃ
+    // å°† BasePhysics çš„å¸¸ç”¨æ¥å£ä»¥ PascalCase æš´éœ²ç»™ä¸Šå±‚ï¼Œä¾¿äºè„šæœ¬/å¤–éƒ¨è°ƒç”¨
     const CF_V2& GetPosition() const noexcept { return get_position(); }
     const CF_V2& GetVelocity() const noexcept { return get_velocity(); }
     const CF_V2& GetForce() const noexcept { return get_force(); }
@@ -205,19 +205,19 @@ public:
     void ApplyVelocity(float dt = 1) noexcept { apply_velocity(dt); }
     void ApplyForce(float dt = 1) noexcept { apply_force(dt); }
 
-    // »ñÈ¡ÉÏÒ»Ö¡Î»ÖÃ£¨ÓÃÓÚÁ¬ĞøÅö×²¼ì²â»ò²åÖµ£©
+    // è·å–ä¸Šä¸€å¸§ä½ç½®ï¼ˆç”¨äºè¿ç»­ç¢°æ’æ£€æµ‹æˆ–æ’å€¼ï¼‰
     const CF_V2& GetPrevPosition() const noexcept { return m_prev_position; }
 
     void SetShape(const CF_ShapeWrapper& s) noexcept { set_shape(s); }
     void SetColliderType(ColliderType t) noexcept { set_collider_type(t); }
 
-    // ±ã½İ´´½¨Åö×²ĞÎ×´µÄ½Ó¿Ú
+    // ä¾¿æ·åˆ›å»ºç¢°æ’å½¢çŠ¶çš„æ¥å£
     void SetAabb(const CF_Aabb& a) noexcept { set_shape(CF_ShapeWrapper::FromAabb(a)); }
     void SetCircle(const CF_Circle& c) noexcept { set_shape(CF_ShapeWrapper::FromCircle(c)); }
     void SetCapsule(const CF_Capsule& c) noexcept { set_shape(CF_ShapeWrapper::FromCapsule(c)); }
     void SetPoly(const CF_Poly& p) noexcept { set_shape(CF_ShapeWrapper::FromPoly(p)); }
 
-    // ¿ìËÙ´´½¨ÒÔÖĞĞÄÎªÔ­µãµÄ AABB / Circle / Capsule °ïÖúº¯Êı£¨³£ÓÃÓÚ»ùÓÚ sprite ´óĞ¡×Ô¶¯ÉèÖÃÅö×²£© 
+    // å¿«é€Ÿåˆ›å»ºä»¥ä¸­å¿ƒä¸ºåŸç‚¹çš„ AABB / Circle / Capsule å¸®åŠ©å‡½æ•°ï¼ˆå¸¸ç”¨äºåŸºäº sprite å¤§å°è‡ªåŠ¨è®¾ç½®ç¢°æ’ï¼‰ 
     void SetCenteredAabb(float half_w, float half_h) noexcept
     {
         CF_Aabb aabb{};
@@ -233,7 +233,7 @@ public:
 #endif
     }
 
-	// ±ã½İ´´½¨¾ÓÖĞ circle
+	// ä¾¿æ·åˆ›å»ºå±…ä¸­ circle
     void SetCenteredCircle(float radius) noexcept
     {
         CF_Circle c{};
@@ -245,14 +245,14 @@ public:
 #endif
     }
 
-    // ±ã½İ°´·½Ïò´´½¨¾ÓÖĞ capsule£¨dir ½«±»Õı¹æ»¯£©
+    // ä¾¿æ·æŒ‰æ–¹å‘åˆ›å»ºå±…ä¸­ capsuleï¼ˆdir å°†è¢«æ­£è§„åŒ–ï¼‰
     void SetCenteredCapsule(const CF_V2& dir, float half_length, float radius) noexcept
     {
 		CF_V2 dir_normalized = v2math::normalized(dir);
         CF_V2 a{ -dir_normalized.x * half_length, -dir_normalized.y * half_length };
         CF_V2 b{ dir_normalized.x * half_length,  dir_normalized.y * half_length };
 
-        // È·±£ a,b ÔÚ×ø±êÅÅĞòÉÏÒ»ÖÂ£¬±ãÓÚºóĞø´¦Àí»òµ÷ÊÔÊä³ö
+        // ç¡®ä¿ a,b åœ¨åæ ‡æ’åºä¸Šä¸€è‡´ï¼Œä¾¿äºåç»­å¤„ç†æˆ–è°ƒè¯•è¾“å‡º
         if (std::fabs(dir_normalized.x) >= std::fabs(dir_normalized.y)) {
             if (a.x > b.x) std::swap(a, b);
         }
@@ -269,7 +269,7 @@ public:
 #endif
     }
 
-    // Ê¹ÓÃ¾Ö²¿¶¥µãÊı×é´´½¨¶à±ßĞÎ£¨local space£©²¢×Ô¶¯µ÷ÓÃ cf_make_poly ÒÔ±£Ö¤ºÏ·¨ĞÔ
+    // ä½¿ç”¨å±€éƒ¨é¡¶ç‚¹æ•°ç»„åˆ›å»ºå¤šè¾¹å½¢ï¼ˆlocal spaceï¼‰å¹¶è‡ªåŠ¨è°ƒç”¨ cf_make_poly ä»¥ä¿è¯åˆæ³•æ€§
     void SetPolyFromLocalVerts(const std::vector<CF_V2>& localVerts) noexcept
     {
         CF_Poly p{};
@@ -289,11 +289,11 @@ public:
 #endif
     }
 
-    // Åö×²»Øµ÷½×¶ÎÃ¶¾Ù£ºEnter£¨½øÈë£©¡¢Stay£¨³ÖĞø£©¡¢Exit£¨ÍË³ö£©
+    // ç¢°æ’å›è°ƒé˜¶æ®µæšä¸¾ï¼šEnterï¼ˆè¿›å…¥ï¼‰ã€Stayï¼ˆæŒç»­ï¼‰ã€Exitï¼ˆé€€å‡ºï¼‰
     enum class CollisionPhase : int { Enter = 1, Stay = 0, Exit = -1 };
 
-    // Í³Ò»µÄÅö×²×´Ì¬»Øµ÷·Ö·¢£ºÉÏ²ã¿ÉÒÔ¸²Ğ´¾ßÌå½×¶ÎµÄ´¦Àíº¯Êı
-    // - Ä¬ÈÏÊµÏÖ½«¸ù¾İ phase µ÷ÓÃ OnCollisionEnter/Stay/Exit£¬ÅÉÉúÀàÍ¨³£ÖØĞ´ÕâĞ©·½·¨
+    // ç»Ÿä¸€çš„ç¢°æ’çŠ¶æ€å›è°ƒåˆ†å‘ï¼šä¸Šå±‚å¯ä»¥è¦†å†™å…·ä½“é˜¶æ®µçš„å¤„ç†å‡½æ•°
+    // - é»˜è®¤å®ç°å°†æ ¹æ® phase è°ƒç”¨ OnCollisionEnter/Stay/Exitï¼Œæ´¾ç”Ÿç±»é€šå¸¸é‡å†™è¿™äº›æ–¹æ³•
     virtual void OnCollisionState(const ObjManager::ObjToken& other, const CF_Manifold& manifold, CollisionPhase phase) noexcept
     {
         switch (phase) {
@@ -309,9 +309,9 @@ public:
         }
     }
 
-    // Öğ½×¶ÎÅö×²»Øµ÷£ºÄ¬ÈÏ¿ÕÊµÏÖ£¨no-op£©£¬ÅÉÉúÀà°´ĞèÊµÏÖ
-    // - ²ÎÊı other Îª¶Ô·½µÄ ObjToken£¨¿ÉÒÔÓÃÓÚÍ¨¹ı ObjManager ²éÑ¯¶Ô·½¶ÔÏó»ò¶Ô±È token£©
-    // - manifold ÎªÅö×²ĞÅÏ¢£¨contact points¡¢normal¡¢penetration depths£©£»Exit ½×¶Î¿ÉÄÜÊÕµ½¿ÕµÄ manifold
+    // é€é˜¶æ®µç¢°æ’å›è°ƒï¼šé»˜è®¤ç©ºå®ç°ï¼ˆno-opï¼‰ï¼Œæ´¾ç”Ÿç±»æŒ‰éœ€å®ç°
+    // - å‚æ•° other ä¸ºå¯¹æ–¹çš„ ObjTokenï¼ˆå¯ä»¥ç”¨äºé€šè¿‡ ObjManager æŸ¥è¯¢å¯¹æ–¹å¯¹è±¡æˆ–å¯¹æ¯” tokenï¼‰
+    // - manifold ä¸ºç¢°æ’ä¿¡æ¯ï¼ˆcontact pointsã€normalã€penetration depthsï¼‰ï¼›Exit é˜¶æ®µå¯èƒ½æ”¶åˆ°ç©ºçš„ manifold
     virtual void OnCollisionEnter(const ObjManager::ObjToken& other, const CF_Manifold& manifold) noexcept {}
     virtual void OnCollisionStay(const ObjManager::ObjToken& other, const CF_Manifold& manifold) noexcept {}
     virtual void OnCollisionExit(const ObjManager::ObjToken& other, const CF_Manifold& manifold) noexcept {}
@@ -325,8 +325,8 @@ public:
     inline void DebugDraw() const noexcept {}
 #endif
 
-    // ±êÇ©ÏµÍ³£ºÓÃÓÚ¿ìËÙ±ê¼Ç/²éÑ¯¶ÔÏó£¨ÀıÈç "player", "enemy", "projectile"£©
-    // - Ê¹ÓÃ unordered_set ±£Ö¤±êÇ©Î¨Ò»£¬set ²Ù×÷Îª noexcept
+    // æ ‡ç­¾ç³»ç»Ÿï¼šç”¨äºå¿«é€Ÿæ ‡è®°/æŸ¥è¯¢å¯¹è±¡ï¼ˆä¾‹å¦‚ "player", "enemy", "projectile"ï¼‰
+    // - ä½¿ç”¨ unordered_set ä¿è¯æ ‡ç­¾å”¯ä¸€ï¼Œset æ“ä½œä¸º noexcept
     void AddTag(const std::string& tag) noexcept
     {
         tags.insert(tag);
@@ -342,19 +342,19 @@ public:
         tags.erase(tag);
     }
 
-    // ¶ÔÏóÏú»Ù¹³×Ó£ºÔÚ¶ÔÏó±» ObjManager Ïú»ÙÇ°»áµ÷ÓÃ£¨°üº¬ pending ±»Ïú»ÙµÄÇé¿ö£©
-    // - ¸²Ğ´ OnDestroy ÓÃÓÚÊÍ·ÅÍâ²¿×ÊÔ´»òÈ¡Ïû¶©ÔÄ
+    // å¯¹è±¡é”€æ¯é’©å­ï¼šåœ¨å¯¹è±¡è¢« ObjManager é”€æ¯å‰ä¼šè°ƒç”¨ï¼ˆåŒ…å« pending è¢«é”€æ¯çš„æƒ…å†µï¼‰
+    // - è¦†å†™ OnDestroy ç”¨äºé‡Šæ”¾å¤–éƒ¨èµ„æºæˆ–å–æ¶ˆè®¢é˜…
     virtual void OnDestroy() noexcept {}
 
     ~BaseObject() noexcept;
 
 protected:
-    // ÊÜ±£»¤µÄ getter£¬¹©ÅÉÉúÀà·ÃÎÊ×ÔÉíµÄ token£¨Ö»¶Á£©
-    // - token ÔÚ¶ÔÏó±»ºÏ²¢µ½ ObjManager ºóÓÉ ObjManager ÉèÖÃ
+    // å—ä¿æŠ¤çš„ getterï¼Œä¾›æ´¾ç”Ÿç±»è®¿é—®è‡ªèº«çš„ tokenï¼ˆåªè¯»ï¼‰
+    // - token åœ¨å¯¹è±¡è¢«åˆå¹¶åˆ° ObjManager åç”± ObjManager è®¾ç½®
     const ObjManager::ObjToken& GetObjToken() const noexcept { return m_obj_token; }
 
 private:
-    // ½« BasePhysics µÄÒ»×é·½·¨Ë½ÓĞ»¯±ğÃûÒÔ±ãÔÚ±¾ÀàÖĞÒÔĞ¡Ğ´ĞÎÊ½Ö±½Óµ÷ÓÃ£¨¼õÉÙÃüÃû³åÍ»£©
+    // å°† BasePhysics çš„ä¸€ç»„æ–¹æ³•ç§æœ‰åŒ–åˆ«åä»¥ä¾¿åœ¨æœ¬ç±»ä¸­ä»¥å°å†™å½¢å¼ç›´æ¥è°ƒç”¨ï¼ˆå‡å°‘å‘½åå†²çªï¼‰
     using BasePhysics::get_position;
     using BasePhysics::set_position;
     using BasePhysics::get_velocity;
@@ -370,7 +370,7 @@ private:
     using BasePhysics::set_collider_type;
     using BasePhysics::get_collider_type;
 
-	// ¸ù¾İ pivot µ÷ÕûÅö×²Æ÷£¨ÊµÏÖÎÄ¼şÄÚ¶¨Òå£©£¬ÓÃÓÚµ±¾«ÁéÊàÖá¸Ä±äÊ±Í¬²½Åö×²ĞÎ×´
+	// æ ¹æ® pivot è°ƒæ•´ç¢°æ’å™¨ï¼ˆå®ç°æ–‡ä»¶å†…å®šä¹‰ï¼‰ï¼Œç”¨äºå½“ç²¾çµæ¢è½´æ”¹å˜æ—¶åŒæ­¥ç¢°æ’å½¢çŠ¶
 	void TweakColliderWithPivot(const CF_V2& pivot) noexcept;
 
     int m_vertical_frame_count = 1;
@@ -385,22 +385,22 @@ private:
 	float m_scale_y = 1.0f;
     CF_V2 m_prev_position = CF_V2{ 0.0f, 0.0f };
 
-    // Ä¬ÈÏ½«¾«ÁéĞı×ª/ÊàÖáÓ¦ÓÃµ½Åö×²Æ÷£¨¿É¹Ø±ÕÒÔ»»È¡ĞÔÄÜ»òÌØÊâĞĞÎª£©
+    // é»˜è®¤å°†ç²¾çµæ—‹è½¬/æ¢è½´åº”ç”¨åˆ°ç¢°æ’å™¨ï¼ˆå¯å…³é—­ä»¥æ¢å–æ€§èƒ½æˆ–ç‰¹æ®Šè¡Œä¸ºï¼‰
     bool m_isColliderRotate = true;
     bool m_isColliderApplyPivot = true;
 
-	std::unordered_set<std::string> tags; // ¶ÔÏó±êÇ©¼¯ºÏ£¨ÎŞĞò£¬²»ÖØ¸´£©
+	std::unordered_set<std::string> tags; // å¯¹è±¡æ ‡ç­¾é›†åˆï¼ˆæ— åºï¼Œä¸é‡å¤ï¼‰
 
-    // ¶ÔÏóÔÚ ObjManager ÖĞµÄ¾ä±ú£¨Ä¬ÈÏÎŞĞ§£©
+    // å¯¹è±¡åœ¨ ObjManager ä¸­çš„å¥æŸ„ï¼ˆé»˜è®¤æ— æ•ˆï¼‰
     ObjManager::ObjToken m_obj_token = ObjManager::ObjToken::Invalid();
 
-    // ½ö¹© ObjManager ÉèÖÃ/Çå³ı token£¨ÓÑÔª±£Ö¤Ö»ÓĞ ObjManager ¿ÉÒÔÖ±½ÓÉèÖÃ£©
+    // ä»…ä¾› ObjManager è®¾ç½®/æ¸…é™¤ tokenï¼ˆå‹å…ƒä¿è¯åªæœ‰ ObjManager å¯ä»¥ç›´æ¥è®¾ç½®ï¼‰
     void SetObjToken(const ObjManager::ObjToken& t) noexcept { m_obj_token = t; }
 
-    // ÔÊĞí ObjManager ÔÚ´´½¨/Ïú»ÙÊ±ÉèÖÃ token
+    // å…è®¸ ObjManager åœ¨åˆ›å»º/é”€æ¯æ—¶è®¾ç½® token
     friend class ObjManager;
 
-    // ¸ù¾İÊÇ·ñÆôÓÃĞı×ª»òÊàÖá¾ö¶¨ÊÇ·ñ½« local shape ÊÓÎª world shape£¬´Ó¶ø±ÜÃâÖØ¸´×ª»»£¨ĞÔÄÜ¿ª¹Ø£©
+    // æ ¹æ®æ˜¯å¦å¯ç”¨æ—‹è½¬æˆ–æ¢è½´å†³å®šæ˜¯å¦å°† local shape è§†ä¸º world shapeï¼Œä»è€Œé¿å…é‡å¤è½¬æ¢ï¼ˆæ€§èƒ½å¼€å…³ï¼‰
     void update_world_shape_flag() noexcept
     {
         BasePhysics::enable_world_shape(m_isColliderRotate || m_isColliderApplyPivot);

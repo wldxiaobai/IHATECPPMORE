@@ -1,4 +1,4 @@
-﻿# BasePhysics
+# BasePhysics
 
 ## 概述  
 `BasePhysics` 提供基础的物理状态与形状管理功能，供可碰撞实体（例如 `BaseObject`）继承使用。重点逻辑是 local-space ↔ world-space 的形状处理（包含旋转、枢轴、缩放），并以惰性缓存方式保存 world-space 形状以降低每帧计算开销。
