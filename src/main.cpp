@@ -11,7 +11,7 @@
 #include "base_object.h"
 #include "drawing_sequence.h"
 #include "player_object.h"
-#include "test_object.h"
+#include "test_block.h"
 #include "obj_manager.h"
 
 static void print_debug_flags_once() {
@@ -50,6 +50,7 @@ int main(int argc, char* argv[])
 
 	// 使用 InstanceController 创建对象：现在返回 token（ObjectToken）
 	auto player_token = ObjManager::Instance().Create<PlayerObject>();
+	auto block_token = ObjManager::Instance().Create<TestBlock>();
 
 	auto update_token = main_thread_on_update.add([]() {
 		ObjManager::Instance().UpdateAll();

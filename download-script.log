@@ -1,0 +1,169 @@
+CMake Error at E:/IHATECPPMORE/out/build/x64-debug/_deps/sdl3-subbuild/sdl3-populate-prefix/src/sdl3-populate-stamp/download-sdl3-populate.cmake:163 (message):
+  Each download failed!
+
+    error: downloading 'https://github.com/libsdl-org/SDL/releases/download/release-3.2.16/SDL3-3.2.16.zip' failed
+          status_code: 35
+          status_string: "SSL connect error.  If this is due to https certificate verification failure, one may set environment variable CMAKE_TLS_VERIFY=0 to suppress it."
+          log:
+          --- LOG BEGIN ---
+          timeout on name lookup is not supported
+
+  Host github.com:443 was resolved.
+
+  IPv6: (none)
+
+  IPv4: 127.0.0.1
+
+    Trying 127.0.0.1:443...
+
+  schannel: disabled automatic use of client certificate
+
+  ALPN: curl offers h2,http/1.1
+
+  schannel: next InitializeSecurityContext failed:
+  CRYPT_E_NO_REVOCATION_CHECK (0x80092012)
+
+  closing connection #0
+
+
+
+          --- LOG END ---
+          error: downloading 'https://github.com/libsdl-org/SDL/releases/download/release-3.2.16/SDL3-3.2.16.zip' failed
+          status_code: 35
+          status_string: "SSL connect error.  If this is due to https certificate verification failure, one may set environment variable CMAKE_TLS_VERIFY=0 to suppress it."
+          log:
+          --- LOG BEGIN ---
+          timeout on name lookup is not supported
+
+  Host github.com:443 was resolved.
+
+  IPv6: (none)
+
+  IPv4: 127.0.0.1
+
+    Trying 127.0.0.1:443...
+
+  schannel: disabled automatic use of client certificate
+
+  ALPN: curl offers h2,http/1.1
+
+  schannel: next InitializeSecurityContext failed:
+  CRYPT_E_NO_REVOCATION_CHECK (0x80092012)
+
+  closing connection #0
+
+
+
+          --- LOG END ---
+          error: downloading 'https://github.com/libsdl-org/SDL/releases/download/release-3.2.16/SDL3-3.2.16.zip' failed
+          status_code: 35
+          status_string: "SSL connect error.  If this is due to https certificate verification failure, one may set environment variable CMAKE_TLS_VERIFY=0 to suppress it."
+          log:
+          --- LOG BEGIN ---
+          timeout on name lookup is not supported
+
+  Host github.com:443 was resolved.
+
+  IPv6: (none)
+
+  IPv4: 127.0.0.1
+
+    Trying 127.0.0.1:443...
+
+  schannel: disabled automatic use of client certificate
+
+  ALPN: curl offers h2,http/1.1
+
+  schannel: next InitializeSecurityContext failed:
+  CRYPT_E_NO_REVOCATION_CHECK (0x80092012)
+
+  closing connection #0
+
+
+
+          --- LOG END ---
+          error: downloading 'https://github.com/libsdl-org/SDL/releases/download/release-3.2.16/SDL3-3.2.16.zip' failed
+          status_code: 35
+          status_string: "SSL connect error.  If this is due to https certificate verification failure, one may set environment variable CMAKE_TLS_VERIFY=0 to suppress it."
+          log:
+          --- LOG BEGIN ---
+          timeout on name lookup is not supported
+
+  Host github.com:443 was resolved.
+
+  IPv6: (none)
+
+  IPv4: 127.0.0.1
+
+    Trying 127.0.0.1:443...
+
+  schannel: disabled automatic use of client certificate
+
+  ALPN: curl offers h2,http/1.1
+
+  schannel: next InitializeSecurityContext failed:
+  CRYPT_E_NO_REVOCATION_CHECK (0x80092012)
+
+  closing connection #0
+
+
+
+          --- LOG END ---
+          error: downloading 'https://github.com/libsdl-org/SDL/releases/download/release-3.2.16/SDL3-3.2.16.zip' failed
+          status_code: 35
+          status_string: "SSL connect error.  If this is due to https certificate verification failure, one may set environment variable CMAKE_TLS_VERIFY=0 to suppress it."
+          log:
+          --- LOG BEGIN ---
+          timeout on name lookup is not supported
+
+  Host github.com:443 was resolved.
+
+  IPv6: (none)
+
+  IPv4: 127.0.0.1
+
+    Trying 127.0.0.1:443...
+
+  schannel: disabled automatic use of client certificate
+
+  ALPN: curl offers h2,http/1.1
+
+  schannel: next InitializeSecurityContext failed:
+  CRYPT_E_NO_REVOCATION_CHECK (0x80092012)
+
+  closing connection #0
+
+
+
+          --- LOG END ---
+          error: downloading 'https://github.com/libsdl-org/SDL/releases/download/release-3.2.16/SDL3-3.2.16.zip' failed
+          status_code: 35
+          status_string: "SSL connect error.  If this is due to https certificate verification failure, one may set environment variable CMAKE_TLS_VERIFY=0 to suppress it."
+          log:
+          --- LOG BEGIN ---
+          timeout on name lookup is not supported
+
+  Host github.com:443 was resolved.
+
+  IPv6: (none)
+
+  IPv4: 127.0.0.1
+
+    Trying 127.0.0.1:443...
+
+  schannel: disabled automatic use of client certificate
+
+  ALPN: curl offers h2,http/1.1
+
+  schannel: next InitializeSecurityContext failed:
+  CRYPT_E_NO_REVOCATION_CHECK (0x80092012)
+
+  closing connection #0
+
+
+
+          --- LOG END ---
+          
+    
+
+

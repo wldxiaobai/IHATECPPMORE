@@ -35,4 +35,11 @@ void TestObject::Update()
 		vel *= damping;
 		SetVelocity(vel);
 	}
+
+	// ����ס�ո�ʱ��ʹ�����岻�ɼ�
+	if (cf_key_down(CF_KEY_W)) {
+		SetVisible(false);
+	} else {
+		SetVisible(true);
+	}
 }
