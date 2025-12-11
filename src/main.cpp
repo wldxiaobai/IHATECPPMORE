@@ -10,11 +10,13 @@
 #include "delegate.h"
 #include "base_object.h"
 #include "drawing_sequence.h"
+#include "obj_manager.h"
+
 #include "player_object.h"
 #include "test_block.h"
-#include "obj_manager.h"
 #include "backgroud.h"
 #include "block_object.h"
+#include "move_spike.h"
 
 static void print_debug_flags_once() {
 	std::cerr << "MCG_DEBUG=" << MCG_DEBUG << " MCG_DEBUG_LEVEL=" << MCG_DEBUG_LEVEL << std::endl;
@@ -57,6 +59,7 @@ int main(int argc, char* argv[])
 	// 使用 InstanceController 创建对象：现在返回 token（ObjectToken）
 	auto player_token = objs.Create<PlayerObject>();
 	auto block_token = objs.Create<TestBlock>();
+	auto spike_token = objs.Create<MoveSpike>();
 
 	// 创建背景对象
 	auto background_token = objs.Create<Backgroud>();
