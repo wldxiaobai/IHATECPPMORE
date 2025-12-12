@@ -58,12 +58,34 @@ public:
     BaseObject() noexcept
         : BasePhysics(), PngSprite("", 1, 1)
     {
+        // 物理基础值：位置/速度/力 清零
         set_position(CF_V2{ 0.0f, 0.0f });
         set_velocity(CF_V2{ 0.0f, 0.0f });
         set_force(CF_V2{ 0.0f, 0.0f });
+
+        // 保证上一帧位置与当前位置一致，避免首帧大位移引发错误碰撞修正
+        m_prev_position = get_position();
+
+        // 清理并禁用位置缓冲（避免遗留的 buffered target 导致跳跃）
+        m_target_position.clear();
+        m_position_buffered = false;
+
+        // 精灵/渲染状态初始化为明确安全值
+        m_visible = true;
+        m_depth = 0;
+        m_flip_x = false;
+        m_flip_y = false;
+        m_scale_x = 1.0f;
+        m_scale_y = 1.0f;
+
+        // 帧延迟/world-shape 标志初始化
         SetFrameDelay(m_sprite_update_freq);
         update_world_shape_flag();
-		tags.reserve(5);
+
+        // 强制把 world-shape 与当前物理状态同步，避免初始碰撞形状基于未同步的缓存数据
+        force_update_world_shape();
+
+        tags.reserve(5);
     }
 
     // 生命周期钩子：在对象被添加到场景/管理器后调用（引擎层面）。派生类可覆盖以初始化资源。
@@ -131,9 +153,9 @@ public:
 	}
 
 	// 供派生类在帧首执行初始化/状态准备，默认为空
-	virtual void StartFrame() noexcept {}
+	virtual void StartFrame() {}
 	// 供派生类在帧尾执行清理/状态同步，默认为空
-	virtual void EndFrame() noexcept {}
+	virtual void EndFrame() {}
 
     // 精灵帧获取：若没有垂直帧则返回当前帧，否则根据垂直帧数获取正确帧
     PngFrame SpriteGetFrame() const

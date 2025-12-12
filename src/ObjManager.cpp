@@ -52,7 +52,7 @@ uint32_t ObjManager::ReserveSlotForCreate() noexcept
 ObjManager::ObjToken ObjManager::CreateEntry(std::unique_ptr<BaseObject> obj)
 {
     if (!obj) {
-        std::cerr << "[InstanceController] CreateEntry: factory returned nullptr\n";
+        std::cerr << "[ObjManager] CreateEntry: factory returned nullptr\n";
         return ObjToken::Invalid();
     }
 
@@ -63,7 +63,7 @@ ObjManager::ObjToken ObjManager::CreateEntry(std::unique_ptr<BaseObject> obj)
         raw->Start();
     }
     catch (...) {
-        std::cerr << "[InstanceController] CreateEntry: Start() threw for object at " << static_cast<const void*>(raw) << " (pending)\n";
+        std::cerr << "[ObjManager] CreateEntry: Start() threw for object at " << static_cast<const void*>(raw) << " (pending)\n";
         return ObjToken::Invalid();
     }
 
@@ -73,7 +73,7 @@ ObjManager::ObjToken ObjManager::CreateEntry(std::unique_ptr<BaseObject> obj)
     pending_ptr_to_id_.emplace(raw, pid);
     ++alive_count_;
 
-    std::cerr << "[InstanceController] CreateEntry: created pending object at " << static_cast<const void*>(raw)
+    std::cerr << "[ObjManager] CreateEntry: created pending object at " << static_cast<const void*>(raw)
         << " (pending id=" << pid << ", commit next-frame)\n";
 
     ObjToken token;
@@ -91,7 +91,7 @@ void ObjManager::DestroyEntry(uint32_t index) noexcept
     if (!e.alive || !e.ptr) return;
 
     BaseObject* raw = e.ptr.get();
-    std::cerr << "[InstanceController] DestroyEntry: destroying object at "
+    std::cerr << "[ObjManager] DestroyEntry: destroying object at "
         << static_cast<const void*>(raw) << " (type: " << typeid(*raw).name() << ", index=" << index
         << ", gen=" << e.generation << ")\n";
 
@@ -119,7 +119,7 @@ void ObjManager::DestroyEntry(uint32_t index) noexcept
     // 清理所有指向该真实 index 的 pending -> real 映射，避免悬挂映射与内存增长
     for (auto it = pending_to_real_map_.begin(); it != pending_to_real_map_.end(); ) {
         if (it->second.index == index) {
-            std::cerr << "[InstanceController] DestroyEntry: removing pending_to_real_map_ entry for pending id="
+            std::cerr << "[ObjManager] DestroyEntry: removing pending_to_real_map_ entry for pending id="
                       << it->first << " -> index=" << index << "\n";
             it = pending_to_real_map_.erase(it);
         } else {
@@ -135,12 +135,12 @@ void ObjManager::DestroyEntry(uint32_t index) noexcept
 void ObjManager::DestroyExisting(const ObjToken& token) noexcept
 {
     if (token.index >= objects_.size()) {
-        std::cerr << "[InstanceController] DestroyExisting(token): invalid index " << token.index << "\n";
+        std::cerr << "[ObjManager] DestroyExisting(token): invalid index " << token.index << "\n";
         return;
     }
     const Entry& e = objects_[token.index];
     if (!e.alive || e.generation != token.generation) {
-        std::cerr << "[InstanceController] DestroyExisting(token): token invalid or object not alive (index="
+        std::cerr << "[ObjManager] DestroyExisting(token): token invalid or object not alive (index="
             << token.index << ", gen=" << token.generation << ")\n";
         return;
     }
@@ -149,11 +149,11 @@ void ObjManager::DestroyExisting(const ObjToken& token) noexcept
     uint64_t key = (static_cast<uint64_t>(token.index) << 32) | token.generation;
     if (pending_destroy_set_.insert(key).second) {
         pending_destroys_.push_back(token);
-        std::cerr << "[InstanceController] DestroyExisting: enqueued destroy for index=" << token.index
+        std::cerr << "[ObjManager] DestroyExisting: enqueued destroy for index=" << token.index
             << " gen=" << token.generation << "\n";
     }
     else {
-        std::cerr << "[InstanceController] DestroyExisting: already enqueued for index=" << token.index
+        std::cerr << "[ObjManager] DestroyExisting: already enqueued for index=" << token.index
             << " gen=" << token.generation << "\n";
     }
 }
@@ -175,7 +175,7 @@ void ObjManager::DestroyPending(const ObjToken& p) noexcept
     pending_creates_.erase(it);
     pending_ptr_to_id_.erase(raw);
     if (alive_count_ > 0) --alive_count_;
-    std::cerr << "[InstanceController] DestroyPending: destroyed pending id=" << p.index << " at " << static_cast<const void*>(raw) << "\n";
+    std::cerr << "[ObjManager] DestroyPending: destroyed pending id=" << p.index << " at " << static_cast<const void*>(raw) << "\n";
 }
 
 // 高层销毁入口：根据传入 token 判定是 pending 还是已注册 token，然后选择合适的路径
@@ -194,7 +194,7 @@ void ObjManager::Destroy(const ObjToken& p) noexcept
 
 void ObjManager::DestroyAll() noexcept
 {
-    std::cerr << "[InstanceController] DestroyAll: destroying all objects (" << alive_count_ << ")\n";
+    std::cerr << "[ObjManager] DestroyAll: destroying all objects (" << alive_count_ << ")\n";
 
     // 清理所有挂起的创建/销毁队列（先清理 pending 表，避免后续提交）
     pending_destroys_.clear();
@@ -268,17 +268,17 @@ void ObjManager::UpdateAll() noexcept
     if (!pending_destroys_.empty()) {
         for (const ObjToken& token : pending_destroys_) {
             if (token.index >= objects_.size()) {
-                std::cerr << "[InstanceController] UpdateAll: pending destroy invalid index " << token.index << "\n";
+                std::cerr << "[ObjManager] UpdateAll: pending destroy invalid index " << token.index << "\n";
                 continue;
             }
             Entry& e = objects_[token.index];
             if (!e.alive || e.generation != token.generation) {
-                std::cerr << "[InstanceController] UpdateAll: pending destroy target not found or token mismatch (index="
+                std::cerr << "[ObjManager] UpdateAll: pending destroy target not found or token mismatch (index="
                     << token.index << ", gen=" << token.generation << ")\n";
                 continue;
             }
 
-            std::cerr << "[InstanceController] UpdateAll: executing destroy for object at index=" << token.index
+            std::cerr << "[ObjManager] UpdateAll: executing destroy for object at index=" << token.index
                 << " gen=" << token.generation << " (type: " << typeid(*e.ptr).name() << ")\n";
 
             // 释放该 slot
@@ -347,7 +347,7 @@ void ObjManager::UpdateAll() noexcept
             // 从 pending_ptr_to_id_ 中移除
             pending_ptr_to_id_.erase(raw);
 
-            std::cerr << "[InstanceController] UpdateAll: committed pending object at " << static_cast<const void*>(raw)
+            std::cerr << "[ObjManager] UpdateAll: committed pending object at " << static_cast<const void*>(raw)
                 << " (type: " << typeid(*objects_[index].ptr).name() << ", pending id=" << pid << ", index=" << index << ", gen=" << objects_[index].generation << ")\n";
 
             // 从 pending_creates_ 中移除该条目
@@ -410,12 +410,12 @@ BaseObject& ObjManager::operator[](ObjToken& token)
 		auto it = pending_creates_.find(token.index);
         if (it != pending_creates_.end()) {
 			BaseObject* raw = it->second.ptr.get();
-			std::cerr << "[InstanceController] operator[]: accessing pending object at " << static_cast<const void*>(raw) << "\n";
+			std::cerr << "[ObjManager] operator[]: accessing pending object at " << static_cast<const void*>(raw) << "\n";
 			return *raw;
         }
         // 尝试使用 TryGetRegisteration 更新 token（若 pending 已被提交）
         TryGetRegisteration(token);
-		std::cerr << "[InstanceController] operator[]: checked pending token, updating token to the registered version\n";
+		std::cerr << "[ObjManager] operator[]: checked pending token, updating token to the registered version\n";
     }
 	return this->operator[](static_cast<const ObjToken&>(token));
 }
@@ -424,12 +424,12 @@ BaseObject& ObjManager::operator[](ObjToken& token)
 BaseObject& ObjManager::operator[](const ObjToken& token)
 {
     if (token.index >= objects_.size()) {
-        std::cerr << "[InstanceController] operator[]: invalid index " << token.index << "\n";
+        std::cerr << "[ObjManager] operator[]: invalid index " << token.index << "\n";
         throw std::out_of_range("ObjManager::operator[]: invalid index");
     }
     Entry& e = objects_[token.index];
     if (!e.alive || e.generation != token.generation || !e.ptr) {
-        std::cerr << "[InstanceController] operator[]: token invalid or object not alive (index=" << token.index << ", gen=" << token.generation << ")\n";
+        std::cerr << "[ObjManager] operator[]: token invalid or object not alive (index=" << token.index << ", gen=" << token.generation << ")\n";
         throw std::out_of_range("ObjManager::operator[]: token invalid or object not alive");
     }
     return *e.ptr;
@@ -442,12 +442,12 @@ const BaseObject& ObjManager::operator[](ObjToken& token) const
         auto it = pending_creates_.find(token.index);
         if (it != pending_creates_.end()) {
             BaseObject* raw = it->second.ptr.get();
-            std::cerr << "[InstanceController] operator[]: accessing pending object at " << static_cast<const void*>(raw) << "\n";
+            std::cerr << "[ObjManager] operator[]: accessing pending object at " << static_cast<const void*>(raw) << "\n";
             return *raw;
         }
         // 尝试使用 TryGetRegisteration 更新 token（若 pending 已被提交）
 		TryGetRegisteration(token);
-        std::cerr << "[InstanceController] operator[]: checked pending token, updating token to the registered version\n";
+        std::cerr << "[ObjManager] operator[]: checked pending token, updating token to the registered version\n";
     }
     return this->operator[](static_cast<const ObjToken&>(token));
 }
@@ -455,12 +455,12 @@ const BaseObject& ObjManager::operator[](ObjToken& token) const
 const BaseObject& ObjManager::operator[](const ObjToken& token) const
 {
     if (token.index >= objects_.size()) {
-        std::cerr << "[InstanceController] operator[] const: invalid index " << token.index << "\n";
+        std::cerr << "[ObjManager] operator[] const: invalid index " << token.index << "\n";
         throw std::out_of_range("ObjManager::operator[] const: invalid index");
     }
     const Entry& e = objects_[token.index];
     if (!e.alive || e.generation != token.generation || !e.ptr) {
-        std::cerr << "[InstanceController] operator[] const: token invalid or object not alive (index=" << token.index << ", gen=" << token.generation << ")\n";
+        std::cerr << "[ObjManager] operator[] const: token invalid or object not alive (index=" << token.index << ", gen=" << token.generation << ")\n";
         throw std::out_of_range("ObjManager::operator[] const: token invalid or object not alive");
     }
     return *e.ptr;

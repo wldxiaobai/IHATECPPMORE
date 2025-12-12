@@ -32,6 +32,7 @@ void PlayerObject::Start()
 
     Scale(0.6f);
     jump_count = 2;
+	AddTag("player");
 }
 
 void PlayerObject::Update()
@@ -180,7 +181,7 @@ void PlayerObject::Exclusion(const CF_Manifold& m) {
     CF_V2 new_position = cf_v2(current_position.x + correction.x, current_position.y + correction.y);
     SetPosition(new_position, true);
 
-    if (correction.y > 0.001f && GetVelocity().y < 0 && v2math::length(m.contact_points[0]-m.contact_points[1]) > speed) {
+    if (m.n.y < 1e-5 - 1 && GetVelocity().y < 0 && v2math::length(m.contact_points[0]-m.contact_points[1]) > speed) {
         grounded = true;
         hold_time_left = 0.0f;
         coyote_time_left = coyote_time_frames;

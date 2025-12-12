@@ -57,10 +57,10 @@ int main(int argc, char* argv[])
 		fs_mount(base.c_str(), "");
 	}
 
-	// 使用 InstanceController 创建对象：现在返回 token（ObjectToken）
+	// 使用 ObjManager 创建对象：现在返回 token（ObjectToken）
 	auto player_token = objs.Create<PlayerObject>();
 	auto spike_token = objs.Create<MoveSpike>();
-	auto standing_spike_token = objs.Create<Spike>(CF_V2(0.0f, -324.0f));
+	auto standing_spike_token = objs.Create<Spike>(CF_V2(154.0f, -324.0f));
 
 	// 创建背景对象
 	auto background_token = objs.Create<Backgroud>();
@@ -147,17 +147,13 @@ int main(int argc, char* argv[])
 					// 找到与玩家当前最近的 checkpoint（registered）
 					ObjManager::ObjToken nearest = objs.FindTokensByTag("checkpoint");
 					if (nearest.isValid() && objs.IsValid(nearest)) {
-						CF_V2 dest = objs[nearest].GetPosition();
-						objs[player_token].SetPosition(dest + CF_V2(0.0f, 10.0f));
-						objs[player_token].SetVelocity(cf_v2(0.0f, 0.0f));
-						objs[player_token].SetForce(cf_v2(0.0f, 0.0f));
+						CF_V2 dest = objs[nearest].GetPosition() + CF_V2(0.0f, 30.0f);
+						objs[player_token].SetPosition(dest);
 						last_checkpoint_pos = dest; // 更新 last checkpoint 记录
 					}
 					else {
 						// 未找到已合并的 checkpoint：退回到 last_checkpoint_pos（可能是启动时的默认）
 						objs[player_token].SetPosition(last_checkpoint_pos);
-						objs[player_token].SetVelocity(cf_v2(0.0f, 0.0f));
-						objs[player_token].SetForce(cf_v2(0.0f, 0.0f));
 					}
 				}
 				catch (...) {

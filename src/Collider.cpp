@@ -274,7 +274,7 @@ void PhysicsSystem::Step(float cell_size) noexcept
 	for (size_t i = 0; i < entries_.size(); ++i) {
 		Entry& a = entries_[i];
 		BasePhysics* pa = a.physics;
-		if (!pa) continue;
+		if (!pa || pa->get_collider_type() == ColliderType::VOID) continue;
 
 		for (int dx = -1; dx <= 1; ++dx) {
 			for (int dy = -1; dy <= 1; ++dy) {
@@ -289,7 +289,7 @@ void PhysicsSystem::Step(float cell_size) noexcept
 					if (!pb) continue;
 
 					// 忽略 VOID 类型的碰撞器
-					if (pa->get_collider_type() == ColliderType::VOID || pb->get_collider_type() == ColliderType::VOID)
+					if (pb->get_collider_type() == ColliderType::VOID)
 						continue;
 
 					// 使用 world_shapes_ 进行 narrowphase 碰撞检测
@@ -481,20 +481,33 @@ void PhysicsSystem::Step(float cell_size) noexcept
 		cf_draw_pop_color();
 		cf_draw_pop();
 #endif
+		auto orient_manifold = [](const CF_Manifold& src, const BaseObject& self, const BaseObject& other) {
+			CF_Manifold out = src;
+			CF_V2 dir = other.GetPosition() - self.GetPosition();
+			if (v2math::length(dir) > 1e-6f) {
+				CF_V2 dir_norm = v2math::normalized(dir);
+				if (v2math::dot(out.n, dir_norm) < 0.0f) {
+					out.n = -out.n;
+				}
+			}
+			return out;
+			};
 
-		// 直接以引用调用回调（顺序不保证：a 的回调可能先于 b，也可能相反）
+		CF_Manifold manifold_for_a = orient_manifold(ev.manifold, oa, ob);
+		CF_Manifold manifold_for_b = orient_manifold(ev.manifold, ob, oa);
+
 		if (was_colliding) {
-			oa.OnCollisionState(ev.b, ev.manifold, BaseObject::CollisionPhase::Stay);
+			oa.OnCollisionState(ev.b, manifold_for_a, BaseObject::CollisionPhase::Stay);
 		}
 		else {
-			oa.OnCollisionState(ev.b, ev.manifold, BaseObject::CollisionPhase::Enter);
+			oa.OnCollisionState(ev.b, manifold_for_a, BaseObject::CollisionPhase::Enter);
 		}
 
 		if (was_colliding) {
-			ob.OnCollisionState(ev.a, ev.manifold, BaseObject::CollisionPhase::Stay);
+			ob.OnCollisionState(ev.a, manifold_for_b, BaseObject::CollisionPhase::Stay);
 		}
 		else {
-			ob.OnCollisionState(ev.a, ev.manifold, BaseObject::CollisionPhase::Enter);
+			ob.OnCollisionState(ev.a, manifold_for_b, BaseObject::CollisionPhase::Enter);
 		}
 	}
 

@@ -16,7 +16,7 @@ void Spike::Start()
         {  16.0f, 0.0f },
         {   0.0f, 32.0f }
 	};
-	SetPolyFromLocalVerts(vertices);
+	SetCenteredPoly(vertices);
 }
 
 void Spike::OnCollisionEnter(const ObjManager::ObjToken& other_token, const CF_Manifold& manifold) noexcept {
