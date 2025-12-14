@@ -11,6 +11,7 @@
 #include "base_object.h"
 #include "drawing_sequence.h"
 #include "obj_manager.h"
+#include "UI_draw.h"
 
 #include "player_object.h"
 #include "backgroud.h"
@@ -19,43 +20,48 @@
 #include "spike.h"
 #include "checkpoint.h"
 
-static void print_debug_flags_once() {
-	std::cerr << "MCG_DEBUG=" << MCG_DEBUG << " MCG_DEBUG_LEVEL=" << MCG_DEBUG_LEVEL << std::endl;
-}
-
+// 全局变量：
 // 全局帧计数
 std::atomic<int> g_frame_count{0};
-int g_frame_rate = 50; // 目标帧率
+// 全局帧率（每秒帧数）
+int g_frame_rate = 50; 
 // 多播委托：无参数、无返回值
 Delegate<> main_thread_on_update;
 
 int main(int argc, char* argv[])
 {
-	print_debug_flags_once();
+	//--------------------------初始化应用程序--------------------------
 	using namespace Cute;
-
-	// 为简短调用创建引用别名
-	auto& objs = ObjManager::Instance();
+	// 打印 debug 配置
+	OUTPUT({"Main"}, "MCG_DEBUG=", MCG_DEBUG, " MCG_DEBUG_LEVEL=", MCG_DEBUG_LEVEL);
 
 	// 窗口大小
 	int window_width = 1024;
 	int window_height = 720;
+
 	// 创建应用程序窗口
 	int options = CF_APP_OPTIONS_WINDOW_POS_CENTERED_BIT;
 	CF_Result result = make_app("My I Wanna", 0, 0, 0, window_width, window_height, options, argv[0]);
 	if (is_error(result)) return -1;
 
-	float half_width = static_cast<float>(window_width) * 0.5f;
-	float half_height = static_cast<float>(window_height) * 0.5f;
-
-	// 挂载 content 目录到虚拟根 "/"，使资源可用为 "/sprites/idle.png"
+	// 记录窗口半宽高，用于 UI 绘制
+	DrawUI::half_w = static_cast<float>(window_width) * 0.5f;
+	DrawUI::half_h = static_cast<float>(window_height) * 0.5f;
 	{
+		// 挂载 content 目录到虚拟根 "/"，使资源可用为 "/sprites/idle.png"
 		CF_Path base = fs_get_base_directory();
 		base.normalize();
 		base += "/content";
-		std::cerr << "[VFS] Mounting content directory: " << base.c_str() << " -> virtual root \"\"\n";
+		OUTPUT({"VFS"}, "Mounting content directory: ", base.c_str(), " -> virtual root \"\"");
 		fs_mount(base.c_str(), "");
 	}
+
+	// 设置目标帧率
+	cf_set_target_framerate(g_frame_rate);
+
+	//--------------------------创建对象--------------------------
+	// 为简短调用创建引用别名
+	auto& objs = ObjManager::Instance();
 
 	// 使用 ObjManager 创建对象：现在返回 token（ObjectToken）
 	auto player_token = objs.Create<PlayerObject>();
@@ -116,29 +122,38 @@ int main(int argc, char* argv[])
 	auto block28_token = objs.Create<BlockObject>(cf_v2(478.0f, -342.0f), true);
 	auto block29_token = objs.Create<BlockObject>(cf_v2(514.0f, -342.0f), true);
 
+	// 注册主线程更新委托：每帧调用 ObjManager::UpdateAll()
 	auto update_token = main_thread_on_update.add([]() {
 		ObjManager::Instance().UpdateAll();
 		});
+	// ------------------------对象创建结束------------------------
 
-	cf_set_target_framerate(g_frame_rate);
 
+	// esc 键长按退出相关参数
 	auto esc_hold_threshold = std::chrono::seconds(3);
 	bool esc_was_down = false;
 	std::chrono::steady_clock::time_point esc_down_start;
 
-	bool debug_player_canvas_reported = false;
-
-	// 游戏结束显示状态
+	// 游戏结束显示相关参数
 	bool game_over = false;
 	std::chrono::steady_clock::time_point game_over_start;
 
+	//--------------------------主循环--------------------------
 	while (app_is_running())
 	{
-		app_update();
-
+		// 一次性日志：主循环成功启动，app_update 可用
 		static bool _once = false;
-		if (!_once) { std::cerr << "[LOOP] app_update OK\n-----\n"; _once = true; }
+		if (!_once) { OUTPUT({"LOOP"}, "app_update OK"); _once = true; }
 
+		//--------------------更新阶段--------------------
+		// 全局帧计数递增
+		g_frame_count++;
+		// 调用 Cute Framework 更新
+		app_update();
+		// 调用主线程更新委托
+		main_thread_on_update(); 
+
+		//---------------------- 输入处理阶段 --------------------
 		//处理 R 键：瞬移或复活到上一个 checkpoint(利用last_checkpoint中存储的地址确定)
 		if (Input::IsKeyInState(CF_KEY_R, KeyState::Down))
 		{
@@ -166,7 +181,7 @@ int main(int argc, char* argv[])
 						game_over = false;
 				}
 				catch (...) {
-					std::cerr << "[Main] Teleport failed\n";
+					OUTPUT({"Main"}, "Teleport failed");
 				}
 			}
 			else
@@ -190,13 +205,22 @@ int main(int argc, char* argv[])
 					}
 				}
 				catch (...) {
-					std::cerr << "[Main] Respawn: failed to initialize new player\n";
+					OUTPUT({"Main"}, "Respawn: failed to initialize new player");
 				}
 				
 			}
 		}
 
-		// 处理 ESC 键：按住 3 秒退出程序
+		// 检测玩家是否已“死亡”（player_token 无效）
+		// 注意：TryGetRegisteration 会在需要时将 pending token 升级为真实 token，或把无效 registered token 置为 Invalid。
+		objs.TryGetRegisteration(player_token);
+		if (!player_token.isValid() && !game_over) {
+			game_over = true;
+			game_over_start = std::chrono::steady_clock::now();
+			OUTPUT({"Main"}, "Player died -> GAME OVER");
+		}
+
+		// 处理 ESC 键：计时退出
 		if (cf_key_down(CF_KEY_ESCAPE))
 		{
 			auto now = std::chrono::steady_clock::now();
@@ -209,154 +233,44 @@ int main(int argc, char* argv[])
 			{
 				auto held = now - esc_down_start;
 				if (held >= esc_hold_threshold)
-				{
-					break;
-				}
+					break; // 退出主循环
 			}
 		}
 		else
 		{
+			// 重置 ESC 状态
 			esc_was_down = false;
 		}
 
-		g_frame_count++;
-		main_thread_on_update();
-
-		// 检测玩家是否已被销毁（token 已无效）。先尝试解析 pending，再判断 token validity。
-		// 注意：TryGetRegisteration 会在需要时将 pending token 升级为真实 token，或把无效 registered token 置为 Invalid。
-		objs.TryGetRegisteration(player_token);
-		if (!player_token.isValid() && !game_over) {
-			game_over = true;
-			game_over_start = std::chrono::steady_clock::now();
-			std::cerr << "[Main] Player died -> GAME OVER\n";
-		}
-
+		//--------------------绘制阶段--------------------
 		// 上传阶段（保持原样）
 		try {
 			DrawingSequence::Instance().DrawAll();
 		} catch (const std::exception& ex) {
-			std::cerr << "绘制异常 (upload): " << ex.what() << std::endl;
+			OUTPUT({"Draw"}, "绘制异常 (upload): ", ex.what());
 			break;
 		}
-
 		// ---- 你当前的测试绘制（参考方形 / 文本 等） ----
-		{
-			cf_draw_push();
-
-			// 绿色中心点（容易辨识）
-			cf_draw_push_color(cf_color_green());
-			{
-				cf_draw_circle2(cf_v2(0.0f, 0.0f), 8.0f, 0.0f);
-			}
-			cf_draw_pop_color();
-
-			// 白色文本显示当前全局帧计数（若字体可用）
-			cf_draw_translate(-half_width, -half_height);
-			cf_draw_push_color(cf_color_white());
-			cf_draw_text(("frame: " + std::to_string(g_frame_count.load())).c_str(), cf_v2(10.0f, 16.0f), -1);
-			cf_draw_pop_color();
-
-			cf_draw_pop();
-		}
-
+		DrawUI::TestDraw();
 		// 如果处于 game over 状态，绘制覆盖提示（屏幕中央），放大并居中，行间插分割线
-		if (game_over) {
-			const char* title = "GAME OVER";
-			const char* hint = "Press R to continue";
-
-			// 放大倍数（可调）
-			const float scale_mult = 1.8f;
-
-			// 基准字号（像素），根据需要调整
-			const float base_title_size = 48.0f;
-			const float base_hint_size = 20.0f;
-			float title_size = base_title_size * scale_mult;
-			float hint_size = base_hint_size * scale_mult;
-
-			// push font size -> cf_text_size 会使用当前 font size
-			cf_push_font_size(title_size);
-			CF_V2 title_sz = cf_text_size(title, -1);
-			cf_pop_font_size();
-
-			cf_push_font_size(hint_size);
-			CF_V2 hint_sz = cf_text_size(hint, -1);
-			cf_pop_font_size();
-
-			float max_w = std::max(title_sz.x, hint_sz.x);
-			// 行 Y 偏移（以像素为单位，屏幕中心为原点，向上为正）
-			const float title_y = title_sz.y;
-			const float hint_y = -12.0f;
-			const float separator_y = 0;
-
-			// 绘制半透明背景遮罩（提高对比度）
-			cf_draw_push();
-			cf_draw_push_color(cf_color_black());
-			// 绘制稍大矩形作为遮罩
-			CF_Aabb mask = cf_make_aabb(cf_v2(-max_w * 0.6f, hint_y - 40.0f), cf_v2(max_w * 0.6f, title_y + 20.0f));
-			cf_draw_quad_fill(mask, 0.0f);
-			cf_draw_pop_color();
-			cf_draw_pop();
-
-			// 绘制主标题
-			cf_push_font_size(title_size);
-			cf_draw_push_color(cf_color_yellow());
-			cf_draw_text(title, cf_v2(-title_sz.x * 0.5f, title_y), -1);
-			cf_draw_pop_color();
-			cf_pop_font_size();
-
-			// 绘制分割线（使用 draw_line，厚度可调）
-			float line_x0 = -max_w * 0.5f;
-			float line_x1 = max_w * 0.5f;
-			cf_draw_push_color(cf_color_white());
-			cf_draw_line(cf_v2(line_x0, separator_y), cf_v2(line_x1, separator_y), 4.0f);
-			cf_draw_pop_color();
-
-			// 绘制提示文字
-			cf_push_font_size(hint_size);
-			cf_draw_push_color(cf_color_white());
-			cf_draw_text(hint, cf_v2(-hint_sz.x * 0.5f, hint_y), -1);
-			cf_draw_pop_color();
-			cf_pop_font_size();
-		}
-
+		if (game_over) { DrawUI::GameOverDraw(); }
 		// 退出提示与最终呈现
-		if (esc_was_down)
-		{
-			cf_draw_push();
-			cf_draw_translate(-half_width, half_height);
-
-			std::stringstream ss;
-			auto now = std::chrono::steady_clock::now();
-			auto held = now - esc_down_start;
-			double held_seconds = std::chrono::duration_cast<std::chrono::duration<double>>(held).count();
-			double threshold_seconds = std::chrono::duration_cast<std::chrono::duration<double>>(esc_hold_threshold).count();
-			ss << "hold ESC to exit ("
-				<< std::fixed << std::setprecision(1) << held_seconds
-				<< " / " << threshold_seconds << "s)";
-			std::string s = ss.str();
-
-			cf_draw_push_color(cf_color_white());
-			cf_draw_text(s.c_str(), cf_v2(10.0f, -16.0f), -1);
-			cf_draw_pop_color();
-
-			cf_draw_pop();
-		}
-
+		if (esc_was_down) { DrawUI::EscDraw(esc_down_start, esc_hold_threshold); }
 		// ---- 在测试绘制之后把已上传的 canvas 绘制到屏幕 ----
 		try {
 			DrawingSequence::Instance().BlitAll();
 		} catch (const std::exception& ex) {
-			std::cerr << "绘制异常 (blit): " << ex.what() << std::endl;
+			OUTPUT({"Draw"}, "绘制异常 (blit): ", ex.what());
 			break;
 		}
-
 		app_draw_onto_screen(true);
 	}
-	// 程序退出：由控制器销毁所有对象
+
+	// 程序退出：
+	// 由控制器销毁所有对象
 	objs.DestroyAll();
-
+	// 清理主线程更新委托
 	main_thread_on_update.clear();
-
 	// 销毁应用程序
 	destroy_app();
 

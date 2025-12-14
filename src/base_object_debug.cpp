@@ -35,7 +35,7 @@ void ManifoldDrawDebug(const CF_Manifold& m) noexcept {
 // 实现：根据 BaseObject 中的 CF_ShapeWrapper 绘制红色轮廓（noexcept）
 void RenderBaseObjectCollisionDebug(const BaseObject* obj) noexcept
 {
-    if (!obj) return;
+    if (!obj || obj->GetColliderType() == ColliderType::VOID) return;
 
     const CF_ShapeWrapper& s = obj->GetShape();
 

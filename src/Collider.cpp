@@ -3,6 +3,7 @@
 #include "debug_config.h"
 #include <algorithm>
 #include <cmath>
+#include <sstream> // 用于构建复杂字符串
 
 #if COLLISION_DEBUG
 #include <iomanip>
@@ -10,25 +11,28 @@
 static void dump_shape_world(const CF_ShapeWrapper& s) noexcept {
 	switch (s.type) {
 	case CF_SHAPE_TYPE_AABB:
-		std::cerr << "    AABB min=(" << s.u.aabb.min.x << "," << s.u.aabb.min.y << ")"
-			<< " max=(" << s.u.aabb.max.x << "," << s.u.aabb.max.y << ")\n";
+		OUTPUT({"Physics"}, "    AABB min=(", s.u.aabb.min.x, ",", s.u.aabb.min.y, ")",
+			" max=(", s.u.aabb.max.x, ",", s.u.aabb.max.y, ")");
 		break;
 	case CF_SHAPE_TYPE_CIRCLE:
-		std::cerr << "    CIRCLE p=(" << s.u.circle.p.x << "," << s.u.circle.p.y << ") r=" << s.u.circle.r << "\n";
+		OUTPUT({"Physics"}, "    CIRCLE p=(", s.u.circle.p.x, ",", s.u.circle.p.y, ") r=", s.u.circle.r);
 		break;
 	case CF_SHAPE_TYPE_CAPSULE:
-		std::cerr << "    CAPSULE a=(" << s.u.capsule.a.x << "," << s.u.capsule.a.y << ")"
-			<< " b=(" << s.u.capsule.b.x << "," << s.u.capsule.b.y << ") r=" << s.u.capsule.r << "\n";
+		OUTPUT({"Physics"}, "    CAPSULE a=(", s.u.capsule.a.x, ",", s.u.capsule.a.y, ")",
+			" b=(", s.u.capsule.b.x, ",", s.u.capsule.b.y, ") r=", s.u.capsule.r);
 		break;
 	case CF_SHAPE_TYPE_POLY:
-		std::cerr << "    POLY count=" << s.u.poly.count << " verts:";
+	{
+		std::stringstream ss;
+		ss << "    POLY count=" << s.u.poly.count << " verts:";
 		for (int i = 0; i < s.u.poly.count; ++i) {
-			std::cerr << " (" << s.u.poly.verts[i].x << "," << s.u.poly.verts[i].y << ")";
+			ss << " (" << s.u.poly.verts[i].x << "," << s.u.poly.verts[i].y << ")";
 		}
-		std::cerr << "\n";
-		break;
+		OUTPUT({"Physics"}, ss.str());
+	}
+	break;
 	default:
-		std::cerr << "    Unknown shape\n";
+		OUTPUT({"Physics"}, "    Unknown shape");
 		break;
 	}
 }
@@ -509,7 +513,7 @@ void PhysicsSystem::Step(float cell_size) noexcept
 
 #if COLLISION_DEBUG
 			// Exit 只打印简短摘要
-			std::cerr << "[Physics] Collision EXIT: a=" << ta.index << " b=" << tb.index << "\n";
+			OUTPUT({"Physics"}, "Collision EXIT: a=", ta.index, " b=", tb.index);
 #endif
 
 			oa.OnCollisionState(tb, CF_Manifold{}, BaseObject::CollisionPhase::Exit);
