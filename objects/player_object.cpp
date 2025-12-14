@@ -1,5 +1,6 @@
 #include "player_object.h"
 #include "bullet.h"
+#include "player_audio.h"
 
 extern std::atomic<int> g_frame_count;
 extern int g_frame_rate; // 全局帧率（每秒帧数）
@@ -33,6 +34,11 @@ static constexpr float max_fall_speed = -12.0f; // 终端下落速度（负值�
 
 void PlayerObject::Start()
 {
+    // 初始化玩家音频（若失败，仅打印，不影响游戏逻辑）
+    if (!PlayerAudio::initialize()) {
+        std::cerr << "[Audio] PlayerAudio init failed" << std::endl;
+    }
+
     // 统一设置贴图路径、竖排帧数、动画更新频率和绘制深度，并注册到绘制序列
     // 如需要默认值，请使用高粒度的 SetSprite*() 和 Set*() 方法逐一设置非默认值参数
     // 资源路径无默认值，必须手动设置
@@ -96,6 +102,9 @@ void PlayerObject::Update()
         auto rot = GetRotation();
         objs[token].SetRotation(rot);
         objs[token].SetVelocity(v2math::angled(CF_V2(12.0f), rot) * flip);
+
+        // 播放射击音效
+        PlayerAudio::playShoot();
     }
 
     // 读取按住/保留时间引用（直接修改 map）
@@ -118,6 +127,9 @@ void PlayerObject::Update()
             CF_V2 v = GetVelocity();
             v.y = 8.0f; // 初始跳跃速度（可调）
             SetVelocity(v);
+
+            // 播放跳跃音效
+            PlayerAudio::playJump();
 
             // 开启按住延长跳跃的计时（仅在跳跃开始时设置）
             hold_time_left = static_cast<float>(max_jump_hold_frames);
@@ -176,6 +188,11 @@ void PlayerObject::OnCollisionEnter(const ObjManager::ObjToken& other_token, con
     if (manifold.count > 0) {
         float correction_y = -manifold.n.y * manifold.depths[0];
         if (correction_y > 0.001f) {
+            // 如果之前并未处于着地状态，则播放着陆音效
+            if (!s_grounded_map[this]) {
+                PlayerAudio::playLand();
+            }
+
             s_grounded_map[this] = true;
             // 着地时取消按住跳跃保留时间（按住延长仅对当前跳跃有效）
             s_jump_hold_time_left[this] = 0.0f;
@@ -197,6 +214,9 @@ void PlayerObject::OnCollisionStay(const ObjManager::ObjToken& other_token, cons
     SetPosition(new_position);
 
     if (correction.y > 0.001f) {
+        if (!s_grounded_map[this]) {
+            PlayerAudio::playLand();
+        }
         s_grounded_map[this] = true;
         s_jump_hold_time_left[this] = 0.0f;
         s_coyote_time_left[this] = coyote_time_frames;

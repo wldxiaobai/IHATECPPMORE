@@ -62,7 +62,7 @@ file(GLOB_RECURSE PROJECT_HEADERS
 add_executable(${PROJECT_NAME}
 	${PROJECT_SOURCES}
 	${PROJECT_HEADERS}
-)
+ "src/windows_audio.h" "src/player_audio.cpp")
 
 # 将 head 目录添加到目标的包含路径
 target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_SOURCE_DIR}/head)
