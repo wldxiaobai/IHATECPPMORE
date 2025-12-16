@@ -2,26 +2,52 @@
 
 void Spike::Start()
 {
-    // ÉèÖÃÄ¬ÈÏ¾«Áé×ÊÔ´
+    // è®¾ç½®é»˜è®¤ç²¾çµèµ„æº
     SpriteSetSource("/sprites/Obj_Spike.png", 1);
 
-	SetPivot(0, -1);
+    SetPivot(0, -1);
     SetPosition(CF_V2(position));
 
 	float hw = SpriteWidth() / 2.0f;
 	float hh = SpriteHeight() / 2.0f;
 
     std::vector<CF_V2> vertices = {
-        { -hw, 0.0f },
-        {  hw, 0.0f },
-        {   0.0f, hh * 2 }
-	};
+        { -16.0f, 0.0f },
+        {  16.0f, 0.0f },
+        {   0.0f, 32.0f }
+    };
+
+    SetCenteredPoly(vertices);
+}
+
+void DownSpike::Start() 
+{
+    //ç¿»è½¬åˆºçš„æ–¹å‘
+    SpriteFlipY();
+	SpriteSetSource("/sprites/Obj_Spike.png", 1);
+
+    SetPivot(0, -1);
+	SetPosition(CF_V2(position));
+
+    std::vector<CF_V2> vertices = {
+        { -16.0f, 32.0f },
+        {  16.0f, 32.0f },
+        {   0.0f, 0.0f }
+    };
 	SetCenteredPoly(vertices);
+
 }
 
 void Spike::OnCollisionEnter(const ObjManager::ObjToken& other_token, const CF_Manifold& manifold) noexcept {
-	//µ±´ÌÅöµ½Íæ¼ÒÊ±Ïú»ÙÍæ¼Ò¶ÔÏó
+	//å½“åˆºç¢°åˆ°ç©å®¶æ—¶é”€æ¯ç©å®¶å¯¹è±¡
     if (objs[other_token].HasTag("player")) {
 		objs.Destroy(other_token);
+    }
+}
+
+void DownSpike::OnCollisionEnter(const ObjManager::ObjToken& other_token, const CF_Manifold& manifold) noexcept {
+    //å½“åˆºç¢°åˆ°ç©å®¶æ—¶é”€æ¯ç©å®¶å¯¹è±¡
+    if (objs[other_token].HasTag("player")) {
+        objs.Destroy(other_token);
     }
 }
