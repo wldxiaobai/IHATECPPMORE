@@ -66,7 +66,8 @@ int main(int argc, char* argv[])
 	// 使用 ObjManager 创建对象：现在返回 token（ObjectToken）
 	auto player_token = objs.Create<PlayerObject>();
 	auto spike_token = objs.Create<MoveSpike>();
-	auto standing_spike_token = objs.Create<Spike>(CF_V2(154.0f, -324.0f));
+	auto standing_spike1_token = objs.Create<Spike>(CF_V2(154.0f, -324.0f));
+	auto standing_spike2_token = objs.Create<DownSpike>(CF_V2(200.0f, -324.0f));
 
 #if TESTER
 	auto tester_token = objs.Create<Tester>();
