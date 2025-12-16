@@ -33,7 +33,7 @@ int main(int argc, char* argv[])
 	//--------------------------初始化应用程序--------------------------
 	using namespace Cute;
 	// 打印 debug 配置
-	OUTPUT({"Main"}, "MCG_DEBUG=", MCG_DEBUG, " MCG_DEBUG_LEVEL=", MCG_DEBUG_LEVEL);
+	OUTPUT({"Main"}, "MCG_DEBUG =", MCG_DEBUG, " MCG_DEBUG_LEVEL =", MCG_DEBUG_LEVEL);
 
 	// 窗口大小
 	int window_width = 1152;
@@ -52,7 +52,7 @@ int main(int argc, char* argv[])
 		CF_Path base = fs_get_base_directory();
 		base.normalize();
 		base += "/content";
-		OUTPUT({"VFS"}, "Mounting content directory: ", base.c_str(), " -> virtual root \"\"");
+		OUTPUT({"VFS"}, "Mounting content directory:", base.c_str(), "-> virtual root \"\"");
 		fs_mount(base.c_str(), "");
 	}
 
@@ -121,7 +121,7 @@ int main(int argc, char* argv[])
 	{
 		// 一次性日志：主循环成功启动，app_update 可用
 		static bool _once = false;
-		if (!_once) { OUTPUT({"LOOP"}, "app_update OK"); _once = true; }
+		if (!_once) { OUTPUT({"LOOP"}, "app_update OK, current frame rate:", g_frame_rate); _once = true; }
 
 		//--------------------更新阶段--------------------
 		// 全局帧计数递增
@@ -225,7 +225,7 @@ int main(int argc, char* argv[])
 		try {
 			DrawingSequence::Instance().DrawAll();
 		} catch (const std::exception& ex) {
-			OUTPUT({"Draw"}, "绘制异常 (upload): ", ex.what());
+			OUTPUT({"Draw"}, "绘制异常 (upload):", ex.what());
 			break;
 		}
 		// ---- 你当前的测试绘制（参考方形 / 文本 等） ----

@@ -151,7 +151,6 @@ CF_Manifold BaseObject::ExclusionWithSolid(const ObjManager::ObjToken& oth, cons
         }
     }
     IsCollidedWith(other, result);
-    OUTPUT({"Player"}, "set to ", GetPosition().x, ",", GetPosition().y);
     return result;
 }
 

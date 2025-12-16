@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <cmath>
 #include <sstream> // 用于构建复杂字符串
+#include <unordered_map>
 
 #if COLLISION_DEBUG
 #include <iomanip>
@@ -166,6 +167,25 @@ static bool shapes_collide_world(const CF_ShapeWrapper& A, const CF_ShapeWrapper
 
 	if (out_manifold) *out_manifold = m;
 	return true;
+}
+
+static void merge_manifold_contact_points(CF_Manifold& base, const CF_Manifold& other) noexcept
+{
+	if (base.count >= 2 || other.count <= 0) return;
+	for (int i = 0; i < other.count && base.count < 2; ++i) {
+		const CF_V2& candidate = other.contact_points[i];
+		bool duplicate = false;
+		for (int j = 0; j < base.count; ++j) {
+			if (v2math::length(candidate-base.contact_points[j])) {
+				duplicate = true;
+				break;
+			}
+		}
+		if (duplicate) continue;
+		base.contact_points[base.count] = candidate;
+		base.depths[base.count] = other.depths[i];
+		base.count += 1;
+	}
 }
 
 // 注意：PhysicsSystem 通过 ObjToken 管理 BasePhysics 的注册与反注册，从而在 Step() 中统一进行碰撞检测与回调。
@@ -332,8 +352,13 @@ void PhysicsSystem::Step(float cell_size) noexcept
 				ev.a = a_entry.token;
 				ev.b = b_entry.token;
 				ev.manifold = m;
-				CF_V2 delta = pa->get_position() - pb->get_position();
-				ev.distance_sq = v2math::dot(delta, delta);
+
+				CF_V2 aver = cf_v2(0.0f, 0.0f);
+				for (int p = 0; p < m.count; p++) aver += m.contact_points[p];
+				aver = aver * (1.0f / static_cast<float>(m.count));
+				ev.distance_a = v2math::length(aver - pa->get_position());
+				ev.distance_b = v2math::length(aver - pb->get_position());
+
 				events_.push_back(ev);
 			}
 		}
@@ -352,16 +377,7 @@ void PhysicsSystem::Step(float cell_size) noexcept
 		}
 	}
 
-	if (events_.size() > 1) {
-		std::sort(events_.begin(), events_.end(), [](const CollisionEvent& lhs, const CollisionEvent& rhs) {
-			return lhs.distance_sq < rhs.distance_sq;
-		});
-	}
-
-	// 使用事件产生 Enter/Stay/Exit 回调序列
-	current_pairs_.clear();
-	current_pairs_.reserve(events_.size() * 2);
-
+	// 进行 narrowphase后排序和去重
 	auto make_pair_key_and_ordered_tokens = [this](const ObjManager::ObjToken& t1, const ObjManager::ObjToken& t2,
 		uint64_t& out_key, ObjManager::ObjToken& out_first, ObjManager::ObjToken& out_second) noexcept
 		{
@@ -378,6 +394,36 @@ void PhysicsSystem::Step(float cell_size) noexcept
 				out_key = k2 ^ (k1 + 0x9e3779b97f4a7c15ULL + (k2 << 6) + (k2 >> 2));
 			}
 		};
+	
+	if (!events_.empty()) {
+		std::unordered_map<uint64_t, CollisionEvent> unique_events;
+		unique_events.reserve(events_.size());
+		for (const auto& ev : events_) {
+			uint64_t pair_key;
+			ObjManager::ObjToken first_tok;
+			ObjManager::ObjToken second_tok;
+			make_pair_key_and_ordered_tokens(ev.a, ev.b, pair_key, first_tok, second_tok);
+			auto emplaced = unique_events.emplace(pair_key, ev);
+			if (!emplaced.second) {
+				merge_manifold_contact_points(emplaced.first->second.manifold, ev.manifold);
+			}
+		}
+		events_.clear();
+		events_.reserve(unique_events.size());
+		for (auto& kv : unique_events) {
+			events_.push_back(kv.second);
+		}
+	}
+
+	if (events_.size() > 1) {
+		std::sort(events_.begin(), events_.end(), [](const CollisionEvent& lhs, const CollisionEvent& rhs) {
+			return lhs.distance_a != rhs.distance_a? lhs.distance_a < rhs.distance_a : lhs.distance_b < rhs.distance_b;
+		});
+	}
+
+	// 使用事件产生 Enter/Stay/Exit 回调序列
+	current_pairs_.clear();
+	current_pairs_.reserve(events_.size() * 2);
 
 	for (const auto& ev : events_) {
 		if (!ObjManager::Instance().IsValid(ev.a) || !ObjManager::Instance().IsValid(ev.b)) continue;
@@ -440,7 +486,7 @@ void PhysicsSystem::Step(float cell_size) noexcept
 
 #if COLLISION_DEBUG
 			// Exit 只打印简短摘要
-			OUTPUT({"Physics"}, "Collision EXIT: a=", ta.index, " b=", tb.index);
+			OUTPUT({"Physics"}, "Collision EXIT: a =", ta.index, "b =", tb.index);
 #endif
 
 			oa.OnCollisionState(tb, CF_Manifold{}, BaseObject::CollisionPhase::Exit);

@@ -49,7 +49,8 @@ public:
 		ObjManager::ObjToken a;
 		ObjManager::ObjToken b;
 		CF_Manifold manifold{};
-		float distance_sq = 0.0f;
+		float distance_a = 0.0f;
+		float distance_b = 0.0f;
 	};
 
 	static PhysicsSystem& Instance() noexcept

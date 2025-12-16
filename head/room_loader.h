@@ -30,11 +30,11 @@ public:
 	void Load(const std::string& room_name) {
 		auto it = room_map.find(room_name);
 		if (it != room_map.end()) {
-			OUTPUT({ "RoomLoader" }, "Loading room: ", room_name);
+			OUTPUT({ "RoomLoader" }, "Loading room:", room_name);
 			it->second.LoadRoom();
 		}
 		else {
-			OUTPUT({ "RoomLoader" }, "Room not found: ", room_name);
+			OUTPUT({ "RoomLoader" }, "Room not found:", room_name);
 		}
 	}
 	void RegisterRoom(const std::string& room_name, const Room& room) {

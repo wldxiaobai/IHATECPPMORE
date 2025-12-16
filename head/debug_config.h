@@ -32,11 +32,15 @@
 #endif 
 
 #if OUTPUT_DEBUG
-#include <iostream>
 #include <concepts> // 引入 concepts 头文件
+#include <chrono>
+#include <ctime>
+#include <iomanip>
+#include <iostream>
+#include <sstream>
 #include <string>
 
-namespace DebugOutput {
+namespace {
     // 1. 定义一个结构体，用于强制使用 'header' 标识符
     struct Header {
         const char* header;
@@ -49,13 +53,36 @@ namespace DebugOutput {
         { os << t } -> std::same_as<std::ostream&>;
     };
 
+    std::string FormatTimestamp()
+    {
+        using namespace std::chrono;
+        const auto now = system_clock::now();
+        const auto time = system_clock::to_time_t(now);
+        std::tm tm{};
+#if defined(_WIN32)
+        localtime_s(&tm, &time);
+#else
+        localtime_r(&time, &tm);
+#endif
+        const auto milliseconds_since_epoch = duration_cast<milliseconds>(now.time_since_epoch());
+        const auto milliseconds_part = milliseconds_since_epoch % milliseconds(1000);
+        std::ostringstream oss;
+        oss << std::setfill('0')
+            << std::setw(2) << tm.tm_hour << "`"
+            << std::setw(2) << tm.tm_min << "``"
+            << std::setw(2) << tm.tm_sec << '.'
+            << std::setw(3) << milliseconds_part.count();
+        return oss.str();
+    }
+
     // 2. 修改 Output 函数，使其第一个参数为 Header 结构体
     template<Streamable... Args> // 使用 concept 直接约束模板参数包
     void Output(Header h, const Args&... args)
     {
-        std::cerr << "[" << h.header << "] ";
+        std::cerr << "[" << FormatTimestamp() << "] ";
+        std::cerr << "[" << h.header << "]";
         // 将所有参数依次输出到 std::cerr
-        (std::cerr << ... << args);
+        ((std::cerr << ' ' << args), ...);
         std::cerr << std::endl;
     }
 
@@ -66,11 +93,11 @@ namespace DebugOutput {
         // 调用带 Header 的版本，并提供默认值
         Output({.header = "Debug Message"}, args...);
     }
-} // namespace DebugOutput
+} // namespace
 
 // 宏定义：在调试版本中启用调试输出功能
 // 使用 __VA_OPT__ (C++20) 来处理可变参数
-#define OUTPUT(...) DebugOutput::Output(__VA_ARGS__)
+#define OUTPUT(...) Output(__VA_ARGS__)
 #else
 // 宏定义：确保在发布版本中完全移除调用和参数求值
 #define OUTPUT(...) do {} while(0)
