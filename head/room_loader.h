@@ -45,12 +45,11 @@ public:
 	}
 
 	// 通过房间引用加载房间
-	void Load(BaseRoom& room) {
+	void Load(const BaseRoom& room) {
 		if (current_room_) {
 			current_room_->get().UnloadRoom();
 		}
-
-		current_room_ = std::ref(room);
+		current_room_ = std::ref(const_cast<BaseRoom&>(room));
 		current_room_->get().LoadRoom();
 	}
 
@@ -86,6 +85,7 @@ public:
 		OUTPUT({ "RoomLoader::LoadInitial" }, "No rooms registered to load initial room.");
 	}
 
+	// 更新当前房间
 	void UpdateCurrent() {
 		if (current_room_) {
 			current_room_->get().RoomUpdate();
@@ -120,6 +120,14 @@ public:
 			initial_room_ = std::ref(*it->second);
 			OUTPUT({ "RoomLoader::RegisterRoom" }, "Registered initial room:", room_name);
 		}
+	}
+
+	const BaseRoom* GetCurrentRoom() const noexcept {
+		return current_room_ ? &current_room_->get() : nullptr;
+	}
+
+	const BaseRoom* GetInitialRoom() const noexcept {
+		return initial_room_ ? &initial_room_->get() : nullptr;
 	}
 
 private:

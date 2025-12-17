@@ -1,4 +1,5 @@
 #include "spike.h"
+#include"globalplayer.h"
 
 void Spike::Start()
 {
@@ -12,17 +13,18 @@ void Spike::Start()
 	float hh = SpriteHeight() / 2.0f;
 
     std::vector<CF_V2> vertices = {
-        { -16.0f, 0.0f },
-        {  16.0f, 0.0f },
-        {   0.0f, 32.0f }
+        { -16.0f, -16.0f },
+        {  16.0f, -16.0f },
+        {   0.0f, 16.0f }
     };
 
     SetCenteredPoly(vertices);
 }
 
-void Spike::OnCollisionEnter(const ObjManager::ObjToken& other_token, const CF_Manifold& manifold) noexcept {
-	//当刺碰到玩家时销毁玩家对象
-    if (objs[other_token].HasTag("player")) {
-		objs.Destroy(other_token);
+void Spike::OnCollisionEnter(const ObjManager::ObjToken& other, const CF_Manifold& manifold) noexcept {
+    auto& g = GlobalPlayer::Instance();
+    //当刺碰到玩家时销毁玩家对象
+    if (other == g.Player()) {
+        g.Hurt();
     }
 }

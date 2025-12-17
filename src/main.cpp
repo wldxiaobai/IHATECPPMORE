@@ -13,6 +13,7 @@
 #include "obj_manager.h"
 #include "UI_draw.h"
 #include "room_loader.h"
+#include "globalplayer.h"
 
 // 全局变量：
 // 全局帧计数
@@ -54,7 +55,7 @@ int main(int argc, char* argv[])
 	cf_set_target_framerate(g_frame_rate);
 
 	// 生成初始房间
-	RoomLoader::Instance().LoadInitial();
+	RoomLoader::Instance().LoadInitial(); 
 
 	// esc 键长按退出相关参数
 	auto esc_hold_threshold = std::chrono::seconds(3);
@@ -104,6 +105,15 @@ int main(int argc, char* argv[])
 		{
 			// 重置 ESC 状态
 			esc_was_down = false;
+		}
+
+		// 判断玩家是否死亡
+		auto& player = GlobalPlayer::Instance().Player();
+		game_over = !objs.TryGetRegisteration(player);
+
+		// 按 R 键重生
+		if (Input::IsKeyInState(CF_KEY_R, KeyState::Down)) {
+			RoomLoader::Instance().Load(*GlobalPlayer::Instance().GetRespawnRoom());
 		}
 
 		//--------------------绘制阶段--------------------

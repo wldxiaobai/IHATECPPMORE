@@ -61,8 +61,8 @@ public:
 	}
 
 	void RoomUpdate() override {
-		if (Input::IsKeyInState(CF_KEY_O, KeyState::Down)) {
-			RoomLoader::Instance().Load("TestRoom");
+		if (Input::IsKeyInState(CF_KEY_P, KeyState::Down)) {
+			RoomLoader::Instance().Load("FirstRoom");
 		}
 	}
 	void RoomUnload() override {

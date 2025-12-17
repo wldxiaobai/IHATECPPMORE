@@ -24,7 +24,7 @@ void PlayerObject::Start()
 
 
     // 可选：初始化位置（根据需要调整），例如屏幕中心附近
-    SetPosition(cf_v2(first_position_x,first_position_y));
+    SetPosition(respawn_point);
 
     Scale(0.5f);
 	AddTag("player");
@@ -60,7 +60,7 @@ void PlayerObject::Update()
         auto token = objs.Create<Bullet>();
         int flip = (SpriteGetFlipX() ? -1 : 1);
         CF_V2 dir = v2math::get_dir(GetRotation()) * flip;
-        if (token.isValid()) objs[token].SetPosition(GetPosition() + dir * SpriteWidth() * 0.5f);
+        if (token.isValid()) objs[token].SetPosition(GetPosition() + dir * SpriteWidth() * 0.2f);
 
         // 设置发射方向与速度（测试用）
         auto rot = GetRotation();
@@ -161,6 +161,8 @@ void Tester::Start()
 	tspeed = 4.0f; // 每帧移动速度
 	ExcludeWithSolids(true); // 与实体排斥
     Scale(0.8f);
+
+    SetPivot(-1, -1);
 }
 
 void Tester::Update()
@@ -180,6 +182,15 @@ void Tester::Update()
         dir.y += 1;
     }
 	SetVelocity(dir * tspeed);
+
+    float angle = 0.0f;
+    if (Input::IsKeyInState(CF_KEY_U, KeyState::Hold)) {
+        angle += 0.03f;
+    }
+    if (Input::IsKeyInState(CF_KEY_O, KeyState::Hold)) {
+        angle -= 0.03f;
+    }
+    Rotate(angle);
 }
 //-----------------------------测试用-----------------------------
 #endif

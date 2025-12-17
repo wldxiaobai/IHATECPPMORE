@@ -8,47 +8,45 @@
 #include "move_spike.h"
 #include "up_move_spike.h"
 #include "down_move_spike.h"
+#include "rotate_spike.h"
 #include "spike.h"
 #include "down_spike.h"
+#include "lateral_spike.h"
 #include "checkpoint.h"
-#include "diagonal_move_spike.h"
-#include "diagonal_move_spike_left.h"
+#include "lateral_spike.h"
+
+#include "globalplayer.h"
 
 class TestRoom : public BaseRoom {
 public:
 	TestRoom() noexcept {}
 	~TestRoom() noexcept override {}
 
-	// ÔÚÕâÀïÌí¼Ó·¿¼ä¼ÓÔØÂß¼­
+	// åœ¨è¿™é‡Œæ·»åŠ æˆ¿é—´åŠ è½½é€»è¾‘
 	void RoomLoad() override {
 		OUTPUT({ "TestRoom" }, "RoomLoad called.");
 
-		// Îª¼ò¶Ìµ÷ÓÃ´´½¨ÒıÓÃ±ğÃû
+		// ä¸ºç®€çŸ­è°ƒç”¨åˆ›å»ºå¼•ç”¨åˆ«å
 		auto& objs = ObjManager::Instance();
+		auto& g_player = GlobalPlayer::Instance();
+		if(!g_player.HasRespawnRecord())g_player.SetRespawnPoint(cf_v2(-300.0f, -200.0f));
+		g_player.Emerge();
 
-		// Ê¹ÓÃ ObjManager ´´½¨¶ÔÏó£ºÏÖÔÚ·µ»Ø token£¨ObjectToken£©
-		auto player_token = objs.Create<PlayerObject>();
-		auto spike_token = objs.Create<MoveSpike>();
-		auto up_move_spike_token = objs.Create<UpMoveSpike>();
-		auto down_move_spike_token = objs.Create<DownMoveSpike>();
-		auto standing_spike1_token = objs.Create<Spike>(CF_V2(154.0f, -324.0f));
-		auto standing_down_spike1_token = objs.Create<DownSpike>(CF_V2(200.0f, -324.0f));
+		// ä½¿ç”¨ ObjManager åˆ›å»ºå¯¹è±¡ï¼šç°åœ¨è¿”å› tokenï¼ˆObjectTokenï¼‰
+		objs.Create<MoveSpike>();
+		objs.Create<UpMoveSpike>();
+		objs.Create<DownMoveSpike>();
+		objs.Create<RotateSpike>();
+		objs.Create<Spike>(CF_V2(154.0f, -324.0f));
+		objs.Create<DownSpike>(CF_V2(200.0f, -324.0f));
+		objs.Create<RightLateralSpike>(CF_V2(-150.0f, 324.0f));
+		objs.Create<LeftLateralSpike>(CF_V2(-150.0f, 0.0f));
 
-		// Ğ±ÏòÓÒÉÏÒÆ¶¯µÄ´Ì
-		auto diagonal_right_spike_token = objs.Create<DiogonalRigMoveSpike>(CF_V2(0.0f, -200.0f));
+		// åˆ›å»ºèƒŒæ™¯å¯¹è±¡
+		objs.Create<Backgroud>();
 
-		// Ğ±×Å×óÉÏÒÆ¶¯µÄ´Ì
-
-		auto diagonal_left_spike_token = objs.Create<DiogonalLefMoveSpike>(CF_V2(0.0f, +200.0f));
-		// ´´½¨±³¾°¶ÔÏó
-		auto background_token = objs.Create<Backgroud>();
-
-		// ¼ÇÂ¼ÉÏÒ»¸ö£¨»òÄ¬ÈÏ£© checkpoint µÄÎ»ÖÃ£¬ÓÃÓÚÍæ¼Ò¸´»î/´«ËÍÊ¹ÓÃ
-		// -µ±Ç°¼ÇÄ¬ÈÏÎ»ÖÃÎª
-		CF_V2 last_checkpoint_pos = cf_v2(-300.0f, 0.0f);
-
-		// ´´½¨·½¿é¶ÔÏó¡£
-		// -¹¹Ôìº¯Êı´«²Î·½Ê½£¨Î»ÖÃ¡¢ÊÇ·ñÎª²İÆº£©
+		// åˆ›å»ºæ–¹å—å¯¹è±¡ã€‚
+		// -æ„é€ å‡½æ•°ä¼ å‚æ–¹å¼ï¼ˆä½ç½®ã€æ˜¯å¦ä¸ºè‰åªï¼‰
 		float hw = DrawUI::half_w;
 		float hh = DrawUI::half_h;
 
@@ -68,23 +66,24 @@ public:
 		for (float x = -hw + 36; x < hw - 36; x += 36) {
 			objs.Create<BlockObject>(cf_v2(x, -hh), true);
 		}
+		objs.Create<Checkpoint>(CF_V2(-200.0f, -hh + 36.0f));
 #if TESTER
-		auto test_token = objs.Create<Tester>();
+		objs.Create<Tester>();
 #endif
 	}
 
-	// ÔÚÕâÀïÌí¼Ó·¿¼ä¸üĞÂÂß¼­
+	// åœ¨è¿™é‡Œæ·»åŠ æˆ¿é—´æ›´æ–°é€»è¾‘
 	void RoomUpdate() override {
-		if (Input::IsKeyInState(CF_KEY_P, KeyState::Down)) {
+		if (Input::IsKeyInState(CF_KEY_N, KeyState::Down)) {
 			RoomLoader::Instance().Load("EmptyRoom");
 		}
 	}
 
-	// ÔÚÕâÀïÌí¼Ó·¿¼äĞ¶ÔØÂß¼­
+	// åœ¨è¿™é‡Œæ·»åŠ æˆ¿é—´å¸è½½é€»è¾‘
 	void RoomUnload() override {
 		OUTPUT({ "TestRoom" }, "RoomUnload called.");
 
 	}
 };
 
-REGISTER_INITIAL_ROOM("TestRoom", TestRoom);
+REGISTER_ROOM("TestRoom", TestRoom);

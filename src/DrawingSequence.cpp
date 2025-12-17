@@ -46,20 +46,21 @@ static void PushFrameSprite(const CF_Sprite* spr, int frame_index, int frame_cou
         entry.maxx = 1.0f;
     }
 
-    CF_V2 offset = sprite.offset + (sprite.pivots ? sprite.pivots[sprite.frame_index] : CF_V2{ 0, 0 });
-    CF_V2 p = cf_add(sprite.transform.p, cf_mul(offset, sprite.scale));
+    CF_V2 pivot = -sprite.offset + (sprite.pivots ? sprite.pivots[sprite.frame_index] : CF_V2{ 0, 0 });
+    CF_V2 pivot_scaled = cf_mul(pivot, sprite.scale);
+    CF_V2 p = sprite.transform.p;
     CF_V2 scale = V2(sprite.scale.x * sprite.w, sprite.scale.y * frame_height_px);
     CF_V2 quad[4] = {
-        { -0.5f,  0.5f },
-        {  0.5f,  0.5f },
-        {  0.5f, -0.5f },
-        { -0.5f, -0.5f },
+        {-0.5f,  0.5f},
+        { 0.5f,  0.5f},
+        { 0.5f, -0.5f},
+        {-0.5f, -0.5f},
     };
     for (int i = 0; i < 4; ++i) {
-        float x = quad[i].x * scale.x;
-        float y = quad[i].y * scale.y;
-        float x0 = sprite.transform.r.c * x - sprite.transform.r.s * y;
-        float y0 = sprite.transform.r.s * x + sprite.transform.r.c * y;
+        CF_V2 vertex = V2(quad[i].x * scale.x, quad[i].y * scale.y);
+        CF_V2 relative = cf_sub(vertex, pivot_scaled);
+        float x0 = sprite.transform.r.c * relative.x - sprite.transform.r.s * relative.y;
+        float y0 = sprite.transform.r.s * relative.x + sprite.transform.r.c * relative.y;
         quad[i] = V2(x0 + p.x, y0 + p.y);
     }
 

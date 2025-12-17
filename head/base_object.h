@@ -210,7 +210,7 @@ public:
 	}
 
     // 枢轴（pivot）控制：以相对（-1..1）或绝对像素值设置中心点
-    CF_V2 GetPivot() const noexcept { return m_sprite.offset; }
+    CF_V2 GetPivot() const noexcept { return m_pivot; }
     /*
      * SetPivot
      *  - x_rel, y_rel：相对于精灵中心的比例（乘以半宽/半高得到局部坐标）
@@ -223,6 +223,7 @@ public:
      *   若你只想改变渲染对齐而不改变碰撞体，请禁用 IsColliderApplyPivot。
      */
     void SetPivot(float x_rel, float y_rel) noexcept {
+		m_pivot = CF_V2{ x_rel , y_rel };
 		float scale_x = GetScaleX();
 		float scale_y = GetScaleY();
         Scale(1.0f);
@@ -230,14 +231,13 @@ public:
         float hh = SpriteHeight() / 2.0f;
 		CF_V2 p = CF_V2{ x_rel * hw, y_rel * hh };
         m_sprite.offset = -p;
-        if (IsColliderApplyPivot()) {
-            TweakColliderWithPivot(p);
-            BasePhysics::set_pivot(p);
-            BasePhysics::mark_world_shape_dirty();
-        }
+        TweakColliderWithPivot(p);
 		ScaleX(scale_x);
 		ScaleY(scale_y);
     }
+    void SetPivot(CF_V2 p) noexcept {
+        SetPivot(p.x, p.y);
+	}
 
     // 组合设置：路径 + 垂直帧数 + 更新频率 + 深度（便捷）
     void SpriteSetStats(const std::string& path, int vertical_frame_count, int update_freq, int depth, bool set_shape_aabb = true) noexcept;
@@ -308,6 +308,7 @@ public:
         aabb.max.x = half_w;
         aabb.max.y = half_h;
         set_shape(CF_ShapeWrapper::FromAabb(aabb));
+        TweakColliderWithPivot(-m_sprite.offset);
     }
 
     void SetCenteredCircle(float radius) noexcept
@@ -316,6 +317,7 @@ public:
         c.p = CF_V2{ 0.0f, 0.0f };
         c.r = radius;
         set_shape(CF_ShapeWrapper::FromCircle(c));
+        TweakColliderWithPivot(-m_sprite.offset);
     }
 
     void SetCenteredCapsule(const CF_V2& dir, float half_length, float radius) noexcept
@@ -333,6 +335,7 @@ public:
 
         CF_Capsule c = cf_make_capsule(a, b, radius);
         set_shape(CF_ShapeWrapper::FromCapsule(c));
+        TweakColliderWithPivot(-m_sprite.offset);
     }
 
     void SetCenteredPoly(const std::vector<CF_V2>& localVerts) noexcept
@@ -345,6 +348,7 @@ public:
         }
         cf_make_poly(&p);
         set_shape(CF_ShapeWrapper::FromPoly(p));
+        TweakColliderWithPivot(-m_sprite.offset);
     }
 
     /*
@@ -478,6 +482,7 @@ private:
     int m_sprite_last_update_frame = 0; // 上一次实际切换帧的全局帧计数
 
     CF_V2 m_prev_position = CF_V2{ 0.0f, 0.0f };
+	CF_V2 m_pivot = CF_V2{ 0.0f, 0.0f };
 
     bool m_isColliderRotate = true;
     bool m_isColliderApplyPivot = true;

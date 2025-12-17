@@ -70,6 +70,10 @@ void BaseObject::SpriteSetSource(const std::string& path, int vertical_frame_cou
             SetCenteredAabb(static_cast<float>(m_sprite.w) * 0.5f, frame_height * 0.5f);
         }
     }
+
+    CF_V2 p = m_pivot;
+    SetPivot(-p);
+	SetPivot(p);
 }
 
 void BaseObject::SpriteSetUpdateFreq(int update_freq) noexcept
@@ -80,6 +84,7 @@ void BaseObject::SpriteSetUpdateFreq(int update_freq) noexcept
 // 当用户想要将 pivot 应用于碰撞器时，调整本地 shape 以将枢轴偏移应用到形状（便于渲染/碰撞对齐）
 void BaseObject::TweakColliderWithPivot(const CF_V2& pivot) noexcept
 {
+    if (!IsColliderApplyPivot()) return;
     CF_ShapeWrapper shape = get_local_shape();
     switch (shape.type) {
     case CF_ShapeType::CF_SHAPE_TYPE_AABB:
@@ -103,6 +108,8 @@ void BaseObject::TweakColliderWithPivot(const CF_V2& pivot) noexcept
         break;
     }
     set_shape(shape);
+    set_pivot(pivot);
+    mark_world_shape_dirty();
 }
 
 bool BaseObject::IsCollidedWith(const BaseObject& other, CF_Manifold& out_m) noexcept
