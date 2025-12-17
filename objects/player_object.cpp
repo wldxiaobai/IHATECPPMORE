@@ -13,6 +13,7 @@ const float PI = 3.14159265358979f;
 static constexpr float speed = 4.0f;            // 水平移动速度
 static constexpr float gravity = 0.4f;        // 基础每帧重力加速度（可根据需要调整）
 static constexpr float max_fall_speed = -7.5f; // 终端下落速度（负值）
+static constexpr float jump_buffer_window = 0.1f; // 跳跃预输入窗口（秒）
 
 void PlayerObject::Start()
 {
@@ -36,6 +37,8 @@ void PlayerObject::Start()
 
 void PlayerObject::Update()
 {
+    const float frame_seconds = 1.0f / g_frame_rate;
+
     // 当检测到按键按下时，设置速度方向（不直接 SetPosition，使用速度积分）
     int dir = 0;
     if (Input::IsKeyInState(CF_KEY_A, KeyState::Hold)) {
@@ -65,24 +68,29 @@ void PlayerObject::Update()
     }
 
     if (Input::IsKeyInState(CF_KEY_SPACE, KeyState::Down)) {
-
-        if (grounded || double_jump_ready) {
-            if (!grounded) {
-				double_jump_ready = false;
-				grounded = true; // 允许二段跳
-            }
-            // 初始跳跃速度（可调）
-            SetVelocityY(double_jump_ready? 8.25f:7.9f);
-            // 清理状态，防止重复起跳
-            grounded = false;
-        }
+        jump_input_timer = jump_buffer_window;
     }
-    else if (Input::IsKeyInState(CF_KEY_SPACE, KeyState::Up)) {
-		float vy = GetVelocity().y;
-        if(vy > 0) {
-            // 松开跳跃键时，如果仍在上升则减速
+
+    auto try_consume_jump_buffer = [&]() -> bool {
+        if (jump_input_timer <= 0.0f || !(grounded || double_jump_ready)) {
+            return false;
+        }
+        if (!grounded) {
+            double_jump_ready = false;
+            grounded = true; // 允许二段跳
+        }
+        SetVelocityY(double_jump_ready ? 8.25f : 7.9f);
+        grounded = false;
+        jump_input_timer = 0.0f;
+        return true;
+    };
+
+    const bool jumped = try_consume_jump_buffer();
+    if (!jumped && Input::IsKeyInState(CF_KEY_SPACE, KeyState::Up)) {
+        float vy = GetVelocity().y;
+        if (vy > 0) {
             SetVelocityY(vy * 0.25f);
-		}
+        }
     }
 
     // 应用重力
@@ -93,6 +101,11 @@ void PlayerObject::Update()
     if (cur_vel_jump.y < max_fall_speed) {
         cur_vel_jump.y = max_fall_speed;
         SetVelocity(cur_vel_jump);
+    }
+
+    jump_input_timer -= frame_seconds;
+    if (jump_input_timer < 0.0f) {
+        jump_input_timer = 0.0f;
     }
 }
 

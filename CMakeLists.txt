@@ -47,6 +47,8 @@ file(GLOB_RECURSE PROJECT_SOURCES
 	"${CMAKE_CURRENT_SOURCE_DIR}/src/*.c"
 	"${CMAKE_CURRENT_SOURCE_DIR}/objects/*.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/objects/*.c"
+	"${CMAKE_CURRENT_SOURCE_DIR}/rooms/*.cpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/rooms/*.c"
 )
 
 # 可选：收集头文件，以便 IDE 在项目树中显示
@@ -57,6 +59,8 @@ file(GLOB_RECURSE PROJECT_HEADERS
 	"${CMAKE_CURRENT_SOURCE_DIR}/src/*.hpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/objects/*.h"
 	"${CMAKE_CURRENT_SOURCE_DIR}/objects/*.hpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/rooms/*.hpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/rooms/*.h"
 )
 
 add_executable(${PROJECT_NAME}

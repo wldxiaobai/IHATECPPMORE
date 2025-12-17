@@ -1,3 +1,6 @@
+// ---
+// ´ıÍêÉÆ
+// ---
 #include "checkpoint.h"
 
 void Checkpoint::Start()

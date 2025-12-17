@@ -8,7 +8,6 @@
 
 #include <cute.h> // CF_Canvas
 
-struct PngFrame;
 class BaseObject;
 
 class DrawingSequence {

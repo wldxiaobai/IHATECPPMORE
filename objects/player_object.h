@@ -20,6 +20,7 @@ public:
 private:
 	bool grounded = false;
 	bool double_jump_ready = true;
+	float jump_input_timer = 0.0f;
 };
 
 #if TESTER
