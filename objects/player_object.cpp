@@ -160,6 +160,8 @@ void Tester::Start()
 	tspeed = 4.0f; // 每帧移动速度
 	ExcludeWithSolids(true); // 与实体排斥
     Scale(0.8f);
+
+    SetPivot(-1, -1);
 }
 
 void Tester::Update()
@@ -179,6 +181,15 @@ void Tester::Update()
         dir.y += 1;
     }
 	SetVelocity(dir * tspeed);
+
+    float angle = 0.0f;
+    if (Input::IsKeyInState(CF_KEY_U, KeyState::Hold)) {
+        angle += 0.03f;
+    }
+    if (Input::IsKeyInState(CF_KEY_O, KeyState::Hold)) {
+        angle -= 0.03f;
+    }
+    Rotate(angle);
 }
 //-----------------------------测试用-----------------------------
 #endif

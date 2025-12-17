@@ -25,6 +25,14 @@
 3. 渲染阶段（由底层渲染器/引擎继续处理）  
    - 引擎按 `DrawingSequence` 汇总的批次在 GPU/画布上绘制所有纹理，无需文档中描述具体接口。  
 
+## 房间管理与对象生命周期
+- `RoomLoader` 负责房间的加载/卸载逻辑，主程序通过该管理器与房间系统解耦，仅需告知 `StartRoom()` 所需房间名即可进行初始化。  
+- 每个房间（派生自 `BaseRoom`）在编译期通过静态注册或 `rooms/*.cpp` 中的构造函数确保 `RoomLoader` 拥有对应的工厂，避免运行时反射或配置描述。  
+- `RoomLoader::LoadRoom()` 会根据注册的类型分配房间实例、调用 `BaseRoom::OnEnter()` 及内部 `ObjManager::Create()`，由 `ObjManager` 的 pending 机制批量注册该房间内的游戏对象。  
+- 房间中 `BaseObject` 派生类通过 `Start()`/`Update()`/`OnDestroy()` 生命周期钩子配合 `ObjManager` 与 `PhysicsSystem` 协同更新，更新与绘制逻辑依旧在每帧的 `ObjManager::UpdateAll()` 与 `DrawingSequence::DrawAll()` 中统一执行。  
+- `RoomLoader::UnloadRoom()` 触发当前房间对象的统一销毁，委托 `ObjManager::Destroy()` 将需要在安全点完成的销毁排入队列，同时 `BaseRoom::OnExit()` 可执行资源释放或预设状态清理。  
+- 通过 `RoomLoader` 提供的接口，主程序无需掌握具体房间类与对象细节，保持了解耦；房间切换仅需调整调用顺序与传参，而底层创建/更新/销毁仍受 `ObjManager` 与 `PhysicsSystem` 管理。  
+
 ## 设计理由与注意点
 - 将 `UpdateAll()` 放在 `DrawAll()` 之前保证当帧逻辑变更（新建对象、位置/帧/贴图变更等）能在同一帧的上传阶段生效，而无需后移到下一帧。  
 - `ObjManager` 采用 pending 创建（`CreateEntry` 将对象放入 `pending_creates_` 并立即调用 `Start()`），真实注册发生在下一次 `UpdateAll()` 的提交阶段；`ObjToken` 使用 `(index,generation)` 防止槽位复用导致悬挂引用。  
@@ -35,4 +43,4 @@
 
 ## 典型误区（快速提示）
 - 不要在碰撞回调中直接 `delete` 对象；应调用 `ObjManager::Destroy(token)` 以在安全点完成销毁。  
-- `Create(...)` 返回 pending token；若需在创建后马上以真实 token 访问对象，需等到下一次 `UpdateAll()` 提交后使用 `TryGetRegisteration`。  
+- `Create(...)` 返回 pending token；若需在创建后马上以真实 token 访问对象，需等到下一次 `UpdateAll()` 提交后使用 `TryGetRegisteration`。

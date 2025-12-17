@@ -86,6 +86,7 @@ public:
 		OUTPUT({ "RoomLoader::LoadInitial" }, "No rooms registered to load initial room.");
 	}
 
+	// 更新当前房间
 	void UpdateCurrent() {
 		if (current_room_) {
 			current_room_->get().RoomUpdate();
