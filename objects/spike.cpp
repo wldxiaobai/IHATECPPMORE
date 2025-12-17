@@ -12,9 +12,9 @@ void Spike::Start()
 	float hh = SpriteHeight() / 2.0f;
 
     std::vector<CF_V2> vertices = {
-        { -16.0f, 0.0f },
-        {  16.0f, 0.0f },
-        {   0.0f, 32.0f }
+        { -16.0f, -16.0f },
+        {  16.0f, -16.0f },
+        {   0.0f, 16.0f }
     };
 
     SetCenteredPoly(vertices);

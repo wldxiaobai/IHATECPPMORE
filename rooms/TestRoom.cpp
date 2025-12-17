@@ -13,20 +13,21 @@
 #include "down_spike.h"
 #include "lateral_spike.h"
 #include "checkpoint.h"
+#include "lateral_spike.h"
 
 class TestRoom : public BaseRoom {
 public:
 	TestRoom() noexcept {}
 	~TestRoom() noexcept override {}
 
-	// ÔÚÕâÀïÌí¼Ó·¿¼ä¼ÓÔØÂß¼­
+	// åœ¨è¿™é‡Œæ·»åŠ æˆ¿é—´åŠ è½½é€»è¾‘
 	void RoomLoad() override {
 		OUTPUT({ "TestRoom" }, "RoomLoad called.");
 
-		// Îª¼ò¶Ìµ÷ÓÃ´´½¨ÒıÓÃ±ğÃû
+		// ä¸ºç®€çŸ­è°ƒç”¨åˆ›å»ºå¼•ç”¨åˆ«å
 		auto& objs = ObjManager::Instance();
 
-		// Ê¹ÓÃ ObjManager ´´½¨¶ÔÏó£ºÏÖÔÚ·µ»Ø token£¨ObjectToken£©
+		// ä½¿ç”¨ ObjManager åˆ›å»ºå¯¹è±¡ï¼šç°åœ¨è¿”å› tokenï¼ˆObjectTokenï¼‰
 		auto player_token = objs.Create<PlayerObject>();
 		auto spike_token = objs.Create<MoveSpike>();
 		auto up_move_spike_token = objs.Create<UpMoveSpike>();
@@ -37,15 +38,15 @@ public:
 		auto standing_lateral_spike1_token = objs.Create<RightLateralSpike>(CF_V2(-150.0f, 324.0f));
 		auto standing_lateral_spike2_token = objs.Create<LeftLateralSpike>(CF_V2(-150.0f, 0.0f));
 
-		// ´´½¨±³¾°¶ÔÏó
+		// åˆ›å»ºèƒŒæ™¯å¯¹è±¡
 		auto background_token = objs.Create<Backgroud>();
 
-		// ¼ÇÂ¼ÉÏÒ»¸ö£¨»òÄ¬ÈÏ£© checkpoint µÄÎ»ÖÃ£¬ÓÃÓÚÍæ¼Ò¸´»î/´«ËÍÊ¹ÓÃ
-		// -µ±Ç°¼ÇÄ¬ÈÏÎ»ÖÃÎª
+		// è®°å½•ä¸Šä¸€ä¸ªï¼ˆæˆ–é»˜è®¤ï¼‰ checkpoint çš„ä½ç½®ï¼Œç”¨äºç©å®¶å¤æ´»/ä¼ é€ä½¿ç”¨
+		// -å½“å‰è®°é»˜è®¤ä½ç½®ä¸º
 		CF_V2 last_checkpoint_pos = cf_v2(-300.0f, 0.0f);
 
-		// ´´½¨·½¿é¶ÔÏó¡£
-		// -¹¹Ôìº¯Êı´«²Î·½Ê½£¨Î»ÖÃ¡¢ÊÇ·ñÎª²İÆº£©
+		// åˆ›å»ºæ–¹å—å¯¹è±¡ã€‚
+		// -æ„é€ å‡½æ•°ä¼ å‚æ–¹å¼ï¼ˆä½ç½®ã€æ˜¯å¦ä¸ºè‰åªï¼‰
 		float hw = DrawUI::half_w;
 		float hh = DrawUI::half_h;
 
@@ -66,14 +67,14 @@ public:
 #endif
 	}
 
-	// ÔÚÕâÀïÌí¼Ó·¿¼ä¸üĞÂÂß¼­
+	// åœ¨è¿™é‡Œæ·»åŠ æˆ¿é—´æ›´æ–°é€»è¾‘
 	void RoomUpdate() override {
 		if (Input::IsKeyInState(CF_KEY_P, KeyState::Down)) {
 			RoomLoader::Instance().Load("EmptyRoom");
 		}
 	}
 
-	// ÔÚÕâÀïÌí¼Ó·¿¼äĞ¶ÔØÂß¼­
+	// åœ¨è¿™é‡Œæ·»åŠ æˆ¿é—´å¸è½½é€»è¾‘
 	void RoomUnload() override {
 		OUTPUT({ "TestRoom" }, "RoomUnload called.");
 

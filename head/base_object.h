@@ -230,11 +230,7 @@ public:
         float hh = SpriteHeight() / 2.0f;
 		CF_V2 p = CF_V2{ x_rel * hw, y_rel * hh };
         m_sprite.offset = -p;
-        if (IsColliderApplyPivot()) {
-            TweakColliderWithPivot(p);
-            BasePhysics::set_pivot(p);
-            BasePhysics::mark_world_shape_dirty();
-        }
+        TweakColliderWithPivot(p);
 		ScaleX(scale_x);
 		ScaleY(scale_y);
     }
@@ -308,6 +304,7 @@ public:
         aabb.max.x = half_w;
         aabb.max.y = half_h;
         set_shape(CF_ShapeWrapper::FromAabb(aabb));
+        TweakColliderWithPivot(-m_sprite.offset);
     }
 
     void SetCenteredCircle(float radius) noexcept
@@ -316,6 +313,7 @@ public:
         c.p = CF_V2{ 0.0f, 0.0f };
         c.r = radius;
         set_shape(CF_ShapeWrapper::FromCircle(c));
+        TweakColliderWithPivot(-m_sprite.offset);
     }
 
     void SetCenteredCapsule(const CF_V2& dir, float half_length, float radius) noexcept
@@ -333,6 +331,7 @@ public:
 
         CF_Capsule c = cf_make_capsule(a, b, radius);
         set_shape(CF_ShapeWrapper::FromCapsule(c));
+        TweakColliderWithPivot(-m_sprite.offset);
     }
 
     void SetCenteredPoly(const std::vector<CF_V2>& localVerts) noexcept
@@ -345,6 +344,7 @@ public:
         }
         cf_make_poly(&p);
         set_shape(CF_ShapeWrapper::FromPoly(p));
+        TweakColliderWithPivot(-m_sprite.offset);
     }
 
     /*

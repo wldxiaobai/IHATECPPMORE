@@ -8,14 +8,12 @@ void LeftLateralSpike::Start()
     SpriteSetSource("/sprites/Obj_Spike.png", 1);
     SetRotation(90.0f * pi / 180.0f);
 
-
     SetPivot(1, 0);
     SetPosition(CF_V2(position));
-
     std::vector<CF_V2> vertices = {
-        { -16.0f, 0.0f },
-        {  16.0f, 0.0f },
-        {   0.0f, 32.0f }
+        { -16.0f, -16.0f },
+        {  16.0f, -16.0f },
+        {   0.0f, 16.0f }
     };
 
     SetCenteredPoly(vertices);
