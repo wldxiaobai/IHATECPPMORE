@@ -140,6 +140,8 @@ int main(int argc, char* argv[])
 			break;
 		}
 		// ---- 你当前的测试绘制（参考方形 / 文本 等） ----
+		DrawUI::on_draw_ui.invoke();
+		DrawUI::on_draw_ui.clear();
 		DrawUI::TestDraw();
 		// 如果处于 game over 状态，绘制覆盖提示（屏幕中央），放大并居中，行间插分割线
 		if (game_over) { DrawUI::GameOverDraw(); }
@@ -147,7 +149,7 @@ int main(int argc, char* argv[])
 		if (esc_was_down) { DrawUI::EscDraw(esc_down_start, esc_hold_threshold); }
 
 		app_draw_onto_screen(true);
-	}
+ 	}
 
 	// 程序退出：
 	// 由控制器销毁所有对象

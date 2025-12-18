@@ -10,6 +10,7 @@ namespace DrawUI {
 
 float half_w = 0.0f;
 float half_h = 0.0f;
+Delegate<> on_draw_ui;
 
 void GameOverDraw() {
 	const char* title = "GAME OVER";

@@ -122,6 +122,8 @@ public:
 			initial_room_ = std::ref(*it->second);
 			OUTPUT({ "RoomLoader::RegisterRoom" }, "Registered initial room:", room_name);
 		}
+
+		OUTPUT({ "RoomLoader::RegisterRoom" }, "Registered room:", room_name);
 	}
 
 	const BaseRoom* GetCurrentRoom() const noexcept {

@@ -1,15 +1,31 @@
 #include "drawing_sequence.h"
 #include "base_object.h"
 #include "debug_config.h"
+#include "UI_draw.h"
 #include <algorithm>
 #include <iostream>
 #include <internal/cute_draw_internal.h>
 #include <cstddef>
 #include <unordered_set>
+#include <vector>
 
 extern std::atomic<int> g_frame_count;
 
 static uint64_t last_image_id = CF_PREMADE_ID_RANGE_LO - 1;
+
+static constexpr size_t kSpriteChunkSize = 256;
+static std::vector<spritebatch_sprite_t> s_pending_sprites;
+
+static void FlushPendingSprites()
+{
+    if (!s_draw) return;
+    if (s_pending_sprites.empty()) return;
+    CF_Command& cmd = s_draw->add_cmd();
+    for (const auto& entry : s_pending_sprites) {
+        cmd.items.add(entry);
+    }
+    s_pending_sprites.clear();
+}
 
 static void PushFrameSprite(const CF_Sprite* spr, int frame_index, int frame_count)
 {
@@ -79,7 +95,11 @@ static void PushFrameSprite(const CF_Sprite* spr, int frame_index, int frame_cou
     entry.geom.user_params = s_draw->user_params.last();
     entry.geom.fill = false;
 
-    DRAW_PUSH_ITEM(entry);
+    s_pending_sprites.push_back(entry);
+    if (s_pending_sprites.size() >= kSpriteChunkSize) {
+        FlushPendingSprites();
+        s_pending_sprites.reserve(kSpriteChunkSize);
+    }
 }
 
 DrawingSequence& DrawingSequence::Instance() noexcept
@@ -137,6 +157,8 @@ void DrawingSequence::DrawAll()
 {
     std::lock_guard<std::mutex> lock(m_mutex);
     last_image_id = CF_PREMADE_ID_RANGE_LO - 1;
+    s_pending_sprites.clear();
+    s_pending_sprites.reserve(kSpriteChunkSize);
     // Sort by depth, then by registration order
     std::sort(m_entries.begin(), m_entries.end(), [](const auto& a, const auto& b) {
         int depth_a = a->owner->GetDepth();
@@ -150,8 +172,8 @@ void DrawingSequence::DrawAll()
     for (const auto& entry : m_entries) {
         if (entry->owner && entry->owner->IsVisible()) {
             BaseObject* obj = entry->owner;
-            CF_Sprite sprite = obj->GetSprite();
-            
+            CF_Sprite& sprite = obj->GetSprite();
+
             // Update sprite animation
             cf_sprite_update(&sprite);
 
@@ -159,22 +181,28 @@ void DrawingSequence::DrawAll()
             CF_V2 pos = obj->GetPosition();
             sprite.transform.p = pos;
 
-            // Draw the sprite
-            PushFrameSprite(&sprite, obj->m_sprite_current_frame_index, obj->m_sprite_vertical_frame_count);
-            //cf_draw_sprite(&sprite);
-            obj->ShapeDraw();
+            DrawUI::on_draw_ui.add(
+                [=]() {obj->ShapeDraw(); }
+            );
             if (!obj->m_collide_manifolds.empty()) {
-                for (const CF_Manifold& m : obj->m_collide_manifolds) obj->ManifoldDraw(m);
+                for (const CF_Manifold& m : obj->m_collide_manifolds)
+                    DrawUI::on_draw_ui.add(
+                        [=]() {obj->ManifoldDraw(m); }
+                    );
             }
 
             if (obj->m_sprite_update_freq > 0 &&
-                g_frame_count - obj->m_sprite_last_update_frame >= obj->m_sprite_update_freq) 
+                g_frame_count - obj->m_sprite_last_update_frame >= obj->m_sprite_update_freq)
             {
                 obj->m_sprite_last_update_frame = g_frame_count;
                 obj->m_sprite_current_frame_index = (obj->m_sprite_current_frame_index + 1) % obj->m_sprite_vertical_frame_count;
             }
+            // Draw the sprite
+            PushFrameSprite(&sprite, obj->m_sprite_current_frame_index, obj->m_sprite_vertical_frame_count);
         }
     }
+
+    FlushPendingSprites();
 }
 
 size_t DrawingSequence::GetEstimatedMemoryUsageBytes() const noexcept
