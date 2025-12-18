@@ -14,14 +14,17 @@ class Blood : public BaseObject {
 		SpriteSetStats("/sprites/blood.png", 1, 1, 0);
 		IsColliderRotate(false);
 		ExcludeWithSolids(true);
+		Scale(0.5f);
 	}
 	void Update() override
 	{
-		AddVelocity(CF_V2(0, -0.15f)); // 模拟重力效果
+		if(IsExcludeWithSolids())
+			AddVelocity(CF_V2(0, -0.3f)); // 模拟重力效果
 	}
 	void OnExclusionSolid(const ObjManager::ObjToken& other_token, const CF_Manifold& manifold) noexcept override
 	{
 		// 碰到实体时停止运动
 		SetVelocity(cf_v2(0.0f, 0.0f));
+		ExcludeWithSolids(false);
 	}
 };

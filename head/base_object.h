@@ -367,6 +367,7 @@ public:
 
 	// 排斥固体开关：开启后，OnCollisionState 会在与 SOLID 碰撞时调用 ExclusionWithSolid 进行退避处理
 	void ExcludeWithSolids(bool v) noexcept { m_exclude_with_solid = v; }
+	bool IsExcludeWithSolids() const noexcept { return m_exclude_with_solid; }
 
 	// 碰撞检测：直接比较两个对象当前的 shape，若重叠即填充 out_m 并返回 true
 	bool IsCollidedWith(const BaseObject& other, CF_Manifold& out_m) noexcept;
