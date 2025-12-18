@@ -7,7 +7,6 @@
 #include "block_object.h"
 #include "move_spike.h"
 #include "up_move_spike.h"
-#include "down_move_spike.h"
 #include "spike.h"
 #include "down_spike.h"
 #include "checkpoint.h"

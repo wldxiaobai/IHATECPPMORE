@@ -7,7 +7,6 @@
 #include "block_object.h"
 #include "move_spike.h"
 #include "up_move_spike.h"
-#include "down_move_spike.h"
 #include "rotate_spike.h"
 #include "spike.h"
 #include "down_spike.h"
@@ -36,7 +35,6 @@ public:
 		// 使用 ObjManager 创建对象：现在返回 token（ObjectToken）
 		objs.Create<MoveSpike>();
 		objs.Create<UpMoveSpike>();
-		objs.Create<DownMoveSpike>();
 		objs.Create<RotateSpike>();
 		objs.Create<Spike>(CF_V2(154.0f, -324.0f));
 		objs.Create<DownSpike>(CF_V2(200.0f, -324.0f));
