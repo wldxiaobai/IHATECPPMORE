@@ -1,6 +1,8 @@
 #pragma once
 #include "base_object.h"
 #include "act_seq.h"
+#include <vector>
+
 class DiogonalLefMoveSpike : public BaseObject {
 public:
     DiogonalLefMoveSpike() noexcept : BaseObject() {}

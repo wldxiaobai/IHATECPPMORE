@@ -1,32 +1,37 @@
-#include"down_move_spike.h"
+#include"down_move_spike_first.h"
 #include"globalplayer.h"
 
 extern int g_frame_rate; // 全局帧率（每秒帧数）
 
-void DownMoveSpike::Start() {
+void FirstDownMoveSpike::Start() {
 
-	// 设置精灵资源与初始状态
-	SpriteSetStats("/sprites/Obj_Spike.png", 1, 1, 0);
-	SetPosition(cf_v2(50.0f, -174.0f)); // 初始位置
-	Scale(1.0f); // 初始缩放为 1 倍
+	//翻转刺的方向
+	SpriteFlipY(true);
+	SpriteSetSource("/sprites/Obj_Spike.png", 1);
 
-	float hw = SpriteWidth() / 2.0f;
-	float hh = SpriteHeight() / 2.0f;
+	SetPivot(0, -1);
+	SetPosition(cf_v2(414.0f,-288.0f));
 
 	std::vector<CF_V2> vertices = {
-		{ -hw, -hh },
-		{  hw, -hh },
-		{ 0.0f, hh }
+		{ -16.0f, -16.0f },
+		{  16.0f, -16.0f },
+		{   0.0f, 16.0f }
 	};
+
 	SetCenteredPoly(vertices);
+
 
 	// 记录初始位置
 	CF_V2 initial_pos = GetPosition();
 	float move_down_distance = 150.0f;
 
+
+
 	//执行下移动作
+
 	m_act_seq.add(
-		static_cast<int>(1.0f * g_frame_rate), // 约 60 帧
+
+		static_cast<int>(0.2f * g_frame_rate),
 		[initial_pos, move_down_distance]
 		(BaseObject* obj, int current_frame, int total_frames)
 		{
@@ -36,22 +41,35 @@ void DownMoveSpike::Start() {
 			if (total_frames == 1) t = 1.0f;
 
 			// 从 (initial_pos.y + move_up_distance) 渐变到 (initial_pos.y + move_up_distance - move_down_distance)
-			float start_y = initial_pos.y + move_down_distance;
-			float current_y = start_y - move_down_distance * t;
+			float current_y = initial_pos.y - move_down_distance * t;
 			obj->SetPosition(cf_v2(initial_pos.x, current_y));
 		}
 	);
+}
 
-	// 播放动作序列
-	m_act_seq.play(this);
+int i = 1;
+
+void FirstDownMoveSpike::Update() {
+
+	//获取玩家位置
+	auto& player = GlobalPlayer::Instance().Player();
+	CF_V2 pos = objs[player].GetPosition();
+
+	float check_x1 = 396.0f;
+
+	if (pos.x > check_x1 && i == 1) {
+
+		// 播放动作序列
+		m_act_seq.play(this);
+
+		std::cout << "ahh";
+		i--;
+	}
+
 
 }
 
-void DownMoveSpike::Update() {
-	// 可选：在 Update 中添加其他逻辑
-}
-
-void DownMoveSpike::OnCollisionEnter(const ObjManager::ObjToken& other, const CF_Manifold& manifold) noexcept {
+void FirstDownMoveSpike::OnCollisionEnter(const ObjManager::ObjToken& other, const CF_Manifold& manifold) noexcept {
 	auto& g = GlobalPlayer::Instance();
 	//当刺碰到玩家时销毁玩家对象
 	if (other == g.Player()) {
