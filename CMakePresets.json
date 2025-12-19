@@ -65,12 +65,20 @@
     {
       "name": "x64-debug",
       "configurePreset": "x64-debug"
+    },
+    {
+      "name": "x64-release",
+      "configurePreset": "x64-release"
     }
   ],
   "testPresets": [
     {
       "name": "x64-debug",
       "configurePreset": "x64-debug"
+    },
+    {
+      "name": "x64-release",
+      "configurePreset": "x64-release"
     }
   ]
 }

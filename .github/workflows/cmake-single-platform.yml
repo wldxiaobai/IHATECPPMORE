@@ -19,14 +19,14 @@ jobs:
     - name: Setup MSVC
       uses: ilammy/msvc-dev-cmd@v1
 
-    - name: Configure CMake (x64 Debug)
-      run: cmake --preset x64-debug
+    - name: Configure CMake (x64 Release)
+      run: cmake --preset x64-release
 
-    - name: Build (x64 Debug)
-      run: cmake --build --preset x64-debug
+    - name: Build (x64 Release)
+      run: cmake --build --preset x64-release
 
     - name: Test
-      run: ctest --preset x64-debug
+      run: ctest --preset x64-release
 
     - name: Upload executable
       uses: actions/upload-artifact@v4
