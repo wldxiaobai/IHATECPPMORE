@@ -16,7 +16,7 @@ public:
     void Update() override;
 
 	// 碰撞回调
-    void OnCollisionEnter(const ObjManager::ObjToken& other_token, const CF_Manifold& manifold) noexcept override;
+    void OnCollisionStay(const ObjManager::ObjToken& other_token, const CF_Manifold& manifold) noexcept override;
 
 private:
     // 隐藏刺的位置

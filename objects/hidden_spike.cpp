@@ -15,9 +15,9 @@ void HiddenSpike::Start()
     SetPosition(position);
 
     std::vector<CF_V2> vertices = {
-        { -16.0f, -16.0f },
-        {  16.0f, -16.0f },
-        {   0.0f, 16.0f }
+        { -15.0f, -15.0f },
+        {  15.0f, -15.0f },
+        {   0.0f, 15.0f }
     };
 
     SetCenteredPoly(vertices);
@@ -77,7 +77,7 @@ void HiddenSpike::Update()
     }
 }
 
-void HiddenSpike::OnCollisionEnter(const ObjManager::ObjToken& other, const CF_Manifold& manifold) noexcept {
+void HiddenSpike::OnCollisionStay(const ObjManager::ObjToken& other, const CF_Manifold& manifold) noexcept {
     //当刺碰到玩家时销毁玩家对象
     if (other == g.Player()) {
         g.Hurt();

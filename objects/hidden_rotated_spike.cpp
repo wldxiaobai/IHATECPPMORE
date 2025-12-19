@@ -1,4 +1,4 @@
-#include "hidden_spike.h"
+#include "hidden_rotated_spike.h"
 #include "obj_manager.h"
 #include "globalplayer.h"
 
@@ -15,9 +15,9 @@ void HiddenRotatedSpike::Start()
     SetPosition(position);
 
     std::vector<CF_V2> vertices = {
-        { -16.0f, -16.0f },
-        {  16.0f, -16.0f },
-        {   0.0f, 16.0f }
+        { -15.0f, -15.0f },
+        {  15.0f, -15.0f },
+        {   0.0f, 15.0f }
     };
 
     SetCenteredPoly(vertices);
@@ -26,7 +26,7 @@ void HiddenRotatedSpike::Start()
 
     // 处理旋转
     const float pi = 3.1415926535f;
-    if (!direction_left) SetRotation(pi / 2.0f);
+    if (direction_left) SetRotation(pi / 2.0f);
     else SetRotation(-pi / 2.0f);
 
     // 直向移动的参数设置
@@ -53,7 +53,7 @@ void HiddenRotatedSpike::Start()
             if (total_frames == 1) t = 1.0f;
 
             // 移动操作
-            CF_V2 new_pos = pos + cf_v2(0.0f, dir * distance * t * attack);
+            CF_V2 new_pos = pos + cf_v2(-dir * distance * t * attack, 0.0f);
             obj->SetPosition(new_pos);
         }
     );
@@ -78,7 +78,7 @@ void HiddenRotatedSpike::Update()
     }
 }
 
-void HiddenRotatedSpike::OnCollisionEnter(const ObjManager::ObjToken& other, const CF_Manifold& manifold) noexcept {
+void HiddenRotatedSpike::OnCollisionStay(const ObjManager::ObjToken& other, const CF_Manifold& manifold) noexcept {
     //当刺碰到玩家时销毁玩家对象
     if (other == g.Player()) {
         g.Hurt();

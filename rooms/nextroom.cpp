@@ -12,6 +12,7 @@
 #include "straight_cherry.h"
 #include "hidden_block.h"
 #include "hidden_spike.h"
+#include "hidden_rotated_spike.h"
 
 class NextRoom : public BaseRoom {
 public:
@@ -78,11 +79,11 @@ public:
 		// 存档点
         objs.Create<Checkpoint>(cf_v2(-8 * w + half, -11 * w));
 
-		// 引导方块
-        objs.Create<HiddenBlock>(cf_v2(-11 * w, -11 * w));
+		// 堵头方块
+        objs.Create<HiddenBlock>(cf_v2(-11 * w, -9 * w));
 
 		// “开门红”
-		objs.Create<HiddenSpike>(cf_v2(-10 * w + half, -12 * w), 2, true);
+		objs.Create<HiddenSpike>(cf_v2(-12 * w + half, -12 * w), 2, true);
 
 		// 初始垫脚块
 		objs.Create<BlockObject>(cf_v2(-15 * w, -9 * w), true);
@@ -142,7 +143,6 @@ public:
 		objs.Create<BlockObject>(cf_v2(11 * w, 2 * w), true);
 		objs.Create<BlockObject>(cf_v2(11 * w, 4 * w), true);
 		objs.Create<BlockObject>(cf_v2(11 * w, 6 * w), true);
-		objs.Create<HiddenSpike>(cf_v2(11 * w + half, 6 * w), 1, true);
 
 		// 右跳块序列
 		objs.Create<BlockObject>(cf_v2(14 * w, -1 * w), true);
@@ -167,6 +167,7 @@ public:
 		objs.Create<BlockObject>(cf_v2(12 * w, 8 * w), true);
 		objs.Create<BlockObject>(cf_v2(13 * w, 8 * w), true);
 		objs.Create<BlockObject>(cf_v2(14 * w, 8 * w), true);
+        objs.Create<HiddenRotatedSpike>(cf_v2(13 * w, 8 * w + half), 1, true, 2, 0.1f);
 
 		// 隐藏方块四连
 		objs.Create<HiddenBlock>(cf_v2(5 * w, 6 * w));
@@ -181,7 +182,6 @@ public:
 
 		// 带刺明线
 		objs.Create<BlockObject>(cf_v2(0 * w, 4 * w), true);
-		objs.Create<HiddenSpike>(cf_v2(0 * w + half, 4 * w), 2, true);
 
 		// 上方拦截隐藏块
 		objs.Create<HiddenBlock>(cf_v2(0 * w, 7 * w));
