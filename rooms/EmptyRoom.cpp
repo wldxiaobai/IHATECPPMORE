@@ -19,11 +19,11 @@
 #include "diablock_object.h"
 #include "lateral_spike.h"
 
-//xÎªºá×ø±êÖµ
-//starty ÎªÆğÊ¼ÖµyÖµ
-//endy Îª½áÊøyÖµ
-// ÎªÎï¿éÖÖÀà
-//¸Ãº¯ÊıÓÃÓÚ¹¹½¨Á¬Ğø·½¿é
+//xä¸ºæ¨ªåæ ‡å€¼
+//starty ä¸ºèµ·å§‹å€¼yå€¼
+//endy ä¸ºç»“æŸyå€¼
+// ä¸ºç‰©å—ç§ç±»
+//è¯¥å‡½æ•°ç”¨äºæ„å»ºè¿ç»­æ–¹å—
 void CreateObject(int x, int starty,int endy,int sort) 
 {
 	float hh = 12 * 36.0f;
@@ -156,31 +156,31 @@ public:
 		float hw = DrawUI::half_w;
 		float hh = DrawUI::half_h;
 
-			//¸´»îµã¶ş
+			//å¤æ´»ç‚¹äºŒ
 		objs.Create<Checkpoint>(CF_V2(-hw + 36.0f, -hh + 20 *36.0f));
 
-		//¸´»îµãÈı
+		//å¤æ´»ç‚¹ä¸‰
 		objs.Create<Checkpoint>(CF_V2(-hw + (4.5) * 36.0f, -hh + 6 * 36.0f));
 
-		//¸´»îµãÈı
-		// ´´½¨±³¾°¶ÔÏó
+		//å¤æ´»ç‚¹ä¸‰
+		// åˆ›å»ºèƒŒæ™¯å¯¹è±¡
 		auto background_token = objs.Create<Backgroud>();
 
 	
 		if (!g_player.HasRespawnRecord())g_player.SetRespawnPoint(cf_v2(-hw + 36 * 1.5f, -hh + 36 * 2));
 		g_player.Emerge();
 
-		//·½¿éÏµÍ³
+		//æ–¹å—ç³»ç»Ÿ
 		
-		//¾²Ö¹ÏµÍ³!!!¼Ó¾²Ö¹·½¿éÊ±×¢ÒâÒª¿¼ÂÇtrueºÍfalse;
+		//é™æ­¢ç³»ç»Ÿ!!!åŠ é™æ­¢æ–¹å—æ—¶æ³¨æ„è¦è€ƒè™‘trueå’Œfalse;
 		
-		//µÚÒ»ĞĞµÄ·½¿é
+		//ç¬¬ä¸€è¡Œçš„æ–¹å—
 		for(float x = -hw; x < hw; x += 36.0f)
 		{
 			objs.Create<BlockObject>(cf_v2(x,hh - 36.0f),false);
 		}
 
-		//µÚÒ»ÁĞÏÂ·½µÄ·½¿é
+		//ç¬¬ä¸€åˆ—ä¸‹æ–¹çš„æ–¹å—
 		objs.Create<BlockObject>(cf_v2(-hw, -hh), false);
 		for (float y = -hh + 144.0f; y < hh - 7 * 36; y += 72) {
 			objs.Create<BlockObject>(cf_v2(-hw, y), false);
@@ -188,164 +188,164 @@ public:
 		objs.Create<BlockObject>(cf_v2(-hw, hh - 5 * 36.0f), false);
 		objs.Create<BlockObject>(cf_v2(-hw + 36.0f, hh - 5 * 36.0f), false);
 
-		//µÚ¶şÁĞµÄ·½¿é
+		//ç¬¬äºŒåˆ—çš„æ–¹å—
 		objs.Create<BlockObject>(cf_v2(-hw + 36.0f, -hh),true);
 		
-		//µÚÈıÁĞÏÂ·½µÄ·½¿é
+		//ç¬¬ä¸‰åˆ—ä¸‹æ–¹çš„æ–¹å—
 		objs.Create<BlockObject>(cf_v2(-hw + 72, -hh), false);
 		for (float y = -hh + 144.0f; y < hh - 6 * 36; y += 72) {
 			objs.Create<BlockObject>(cf_v2(-hw + 72, y), false);
 		}
 
-		//µÚÎåÁĞµÄ·½¿é
+		//ç¬¬äº”åˆ—çš„æ–¹å—
 		objs.Create<DiaBlockObject>(cf_v2(-hw + 4 * 36.0f, -hh + 5 * 36.0f));
 		
-		//µÚ¾ÅÁĞ·½¿é
+		//ç¬¬ä¹åˆ—æ–¹å—
 		CreateObject(8, 2, 6, 2);
 
-		//µÚÊ®ÁĞ·½¿é
+		//ç¬¬ååˆ—æ–¹å—
 		CreateObject(9, 4, 4, 2);
 
-		//µÚÊ®Ò»ÁĞ·½¿é
+		//ç¬¬åä¸€åˆ—æ–¹å—
 		CreateObject(10, 2, 6, 2);
 
-		//µÚÊ®ÈıÁĞ·½¿é
+		//ç¬¬åä¸‰åˆ—æ–¹å—
 		CreateObject(13, 2, 6, 2);
 
-		//µÚÊ®ÎåÁĞ·½¿é
+		//ç¬¬åäº”åˆ—æ–¹å—
 		CreateObject(14, 3, 5, 2);
 
-		//µÚÊ®ÁùÁĞ·½¿é
+		//ç¬¬åå…­åˆ—æ–¹å—
 		CreateObject(15, 2, 2, 2);
 		CreateObject(15, 6, 6, 2);
 
-		//µÚÊ®Ê®¾ÅÁĞ·½¿é
+		//ç¬¬ååä¹åˆ—æ–¹å—
 		CreateObject(18, 2, 6, 2);
 
-		//µÚ¶şÊ®ÁĞ·½¿é
+		//ç¬¬äºŒååˆ—æ–¹å—
 		CreateObject(19, 2, 2, 2);
 
-		//µÚ¶şÊ®Ò»ÁĞ·½¿é
+		//ç¬¬äºŒåä¸€åˆ—æ–¹å—
 		CreateObject(20, 2, 2, 2);
 
-		//µÚ¶şÊ®ËÄÁĞ·½¿é
+		//ç¬¬äºŒåå››åˆ—æ–¹å—
 		CreateObject(23, 2, 2, 2);
 		CreateObject(23, 4, 6, 2);
 
-		//µÚ¶şÊ®ÁùÁĞ·½¿é
+		//ç¬¬äºŒåå…­åˆ—æ–¹å—
 		CreateObject(25, 2, 2, 2);
 		CreateObject(25, 4, 6, 2);
 
-		//µÚ¶şÊ®°ËÁĞ·½¿é
+		//ç¬¬äºŒåå…«åˆ—æ–¹å—
 		CreateObject(27, 2, 2, 2);
 		CreateObject(27, 4, 6, 2);
 
-		//µÚÈıÊ®Ò»ÁĞ·½¿é
+		//ç¬¬ä¸‰åä¸€åˆ—æ–¹å—
 		CreateObject(30, 14, 14,2);
 		CreateObject(30, 2, 3, 2);
 		
-		//µÚÈıÊ®¶şÁĞ·½¿é
+		//ç¬¬ä¸‰åäºŒåˆ—æ–¹å—
 		CreateObject(31, 2, 2, 2);
 
-		//µÚÈıÊ®ÈıÁĞ·Å¿é
+		//ç¬¬ä¸‰åä¸‰åˆ—æ”¾å—
 		CreateObject(32, 6, 22, 1);
 
-		//×îºóÒ»ÁĞµÄ·½¿é
+		//æœ€åä¸€åˆ—çš„æ–¹å—
 		{
 			objs.Create<BlockObject>(cf_v2(hw - 36.0f, 2 * 36.0f),false);
 		}
-		//ÒÆ¶¯·½¿é
+		//ç§»åŠ¨æ–¹å—
 
-		//µÚ¶şĞĞµÄºáÏòÒÆ¶¯·½¿é
+		//ç¬¬äºŒè¡Œçš„æ¨ªå‘ç§»åŠ¨æ–¹å—
 		objs.Create<RightMoveBlock>(cf_v2(-hw + 6 *36.0f,hh - 6 * 36.0f));
 		
-		//µÚ¶şĞĞµÄºáÏòÒÆ¶¯·½¿é
+		//ç¬¬äºŒè¡Œçš„æ¨ªå‘ç§»åŠ¨æ–¹å—
 		objs.Create<LeftMoveBlock>(cf_v2(hw - 6 * 36.0f, hh - 6 * 36.0f));
 
-		//ÖĞ¼äĞĞµÄºáÏòÒÆ¶¯·½¿é
+		//ä¸­é—´è¡Œçš„æ¨ªå‘ç§»åŠ¨æ–¹å—
 		objs.Create<RightMoveBlock>(cf_v2(-hw + 6 * 36.0f, hh - 12 * 36.0f));
 
-		//ÖĞ¼äĞĞµÄºáÏòÒÆ¶¯·½¿é
+		//ä¸­é—´è¡Œçš„æ¨ªå‘ç§»åŠ¨æ–¹å—
 		objs.Create<LeftMoveBlock>(cf_v2(hw - 6 * 36.0f, hh - 12 * 36.0f));
 		
-		//´Ì·½¿éÏµÍ³ £¨´ÌÊÇÒÔÖĞĞÄÏßÎªÖĞĞÄÖá£¬Îª¶ÔÆëĞèÍùÏÂĞ´Á½¸ñ£©
+		//åˆºæ–¹å—ç³»ç»Ÿ ï¼ˆåˆºæ˜¯ä»¥ä¸­å¿ƒçº¿ä¸ºä¸­å¿ƒè½´ï¼Œä¸ºå¯¹é½éœ€å¾€ä¸‹å†™ä¸¤æ ¼ï¼‰
 		
-		//µ÷ÓÃº¯Êı²¿·Ö
+		//è°ƒç”¨å‡½æ•°éƒ¨åˆ†
 		CreateHorizonalSpike(10, 5, 8, 2);
 		CreateHorizonalSpike(10, 10, 13, 2);
 		CreateHorizonalSpike(10, 15, 23, 2);
 		CreateHorizonalSpike(10, 25, 25, 2);
 		CreateHorizonalSpike(10, 27, 31, 2);
 
-		//µÚ¾ÅÁĞµÄ´Ì
+		//ç¬¬ä¹åˆ—çš„åˆº
 		CreateVerticalSpike(9, 5, 7, 1);
 
-		//µÚÊ®ÎåÁĞµÄ´Ì
+		//ç¬¬åäº”åˆ—çš„åˆº
 		CreateVerticalSpike(14, 6, 7, 1);
 		
-		//µÚ24ÁĞµÄ´Ì
+		//ç¬¬24åˆ—çš„åˆº
 		CreateVerticalSpike(24, 1, 1, 1);
 		CreateVerticalSpike(24, 4, 7, 1);
 
-		//µÚ26ÁĞµÄ´Ì
+		//ç¬¬26åˆ—çš„åˆº
 		CreateVerticalSpike(26, 1, 1, 1);
 		CreateVerticalSpike(26, 4, 7, 1);
 
-		//ĞĞ´ÌÏµÍ³
+		//è¡Œåˆºç³»ç»Ÿ
 		
-		//ÉÏ·½µÚ¶şĞĞ´Ì
+		//ä¸Šæ–¹ç¬¬äºŒè¡Œåˆº
 		for (float x = -hw + 4.5 * 36.0f; x < hw - 2 * 36.0f; x += 36.0f)
 		{
 			objs.Create<DownSpike>(CF_V2(x, hh - 36.0f));
 		}
 
-		//ÖĞÉÏĞĞµ¹´Ì
+		//ä¸­ä¸Šè¡Œå€’åˆº
 		for (float x = -hw + 4.5 * 36.0f; x < hw - 2 * 36.0f; x += 36.0f)
 		{
 			objs.Create<DownSpike>(CF_V2(x, 5.5 * 36.0f));
 		}
 
-		//×îºóÒ»ĞĞµ¹´Ì
+		//æœ€åä¸€è¡Œå€’åˆº
 		for (float x = -hw + 4.5 * 36.0f; x < hw; x += 36.0f)
 		{
 			objs.Create<Spike>(CF_V2(x, -hh));
 		}
 
-		//ÖĞ¼äÏÂÃæÁ½ĞĞµ¹´Ì
+		//ä¸­é—´ä¸‹é¢ä¸¤è¡Œå€’åˆº
 		for (float x = -hw + 5.5 * 36.0f; x < hw; x += 36.0f)
 		{
 			objs.Create<Spike>(CF_V2(x, -2*36.0f));
 		}
 		
-		// ÁĞ´ÌÏµÍ³
-		//	×ó±ßÆÁÄ»ÍâµÄ´Ì
+		// åˆ—åˆºç³»ç»Ÿ
+		//	å·¦è¾¹å±å¹•å¤–çš„åˆº
 		 for (float y = -hh + 5 * 36.0f; y < hh ; y += 36.0f)
 		{
 			objs.Create<Spike>(CF_V2(-hw  - 0.5 * 36.0f, y));
 		}
 
-		//×ó·½µÚËÄÁĞ´Ì 
+		//å·¦æ–¹ç¬¬å››åˆ—åˆº 
 		for (float y = -hh; y < hh - 3 * 36.0f; y += 36.0f)
 		{
 			objs.Create<Spike>(CF_V2(-hw + 4 * 36.0f - 0.5 * 36.0f,y));
 		}
 
-		//µÚ¶şÁĞµÄÊúÏòÒÆ¶¯·½¿é ÉÏÃæµÄ
+		//ç¬¬äºŒåˆ—çš„ç«–å‘ç§»åŠ¨æ–¹å— ä¸Šé¢çš„
 		objs.Create<VerticalMovingSpike>(CF_V2(-hw + 1.5 * 36.0f, -0.5f * 36), 1.0f, 0.1f, 220.0f);
 
-		//µÚ¶şÁĞµÄÊúÏòÒÆ¶¯·½¿é ÏÂÃæµÄ
+		//ç¬¬äºŒåˆ—çš„ç«–å‘ç§»åŠ¨æ–¹å— ä¸‹é¢çš„
 		objs.Create<VerticalMovingSpike>(CF_V2(-hw + 1.5 * 36.0f, -hh + 4.5f * 36), 0.8f, 0.2f, 220.0f);
 
-		//ÖĞ¼äÖĞ·½ÒÆ¶¯µÄ´Ì ×ó±ßµÄ
+		//ä¸­é—´ä¸­æ–¹ç§»åŠ¨çš„åˆº å·¦è¾¹çš„
 		objs.Create<VerticalMovingSpike>(CF_V2( - 3 * 36.0f,36.0f), 1.0f, 0.1f, 120.0f);
 
-		//ÖĞ¼äÖĞ·½ÒÆ¶¯µÄ´Ì ÓÒ±ßµÄ
+		//ä¸­é—´ä¸­æ–¹ç§»åŠ¨çš„åˆº å³è¾¹çš„
 		objs.Create<VerticalMovingSpike>(CF_V2( 3 * 36.0f,36.0f), 1.0f, 0.1f, 120.0f);
 
-		//Ğ±×ÅÒÆ¶¯µÄ×ó¶¯´Ì
+		//æ–œç€ç§»åŠ¨çš„å·¦åŠ¨åˆº
 		objs.Create<DiogonalLefMoveSpike>(CF_V2(-2 * 36.0f, 7 * 36.0f), 1.0f, 0.1f);
 
-		//Ğ±×ÅÒÆ¶¯µÄÓÒ¶¯´Ì
+		//æ–œç€ç§»åŠ¨çš„å³åŠ¨åˆº
 		objs.Create<DiogonalRigMoveSpike>(CF_V2(36.0f, 7 * 36.0f), 0.8f, 0.1f);
 		
 		objs.Create<DiogonalLefMoveSpike>(CF_V2(hw - 2 * 36.0f, 0.0f), 0.8f, 0.2f);
