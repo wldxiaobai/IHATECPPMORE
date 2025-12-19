@@ -357,6 +357,10 @@ public:
 			g.SetEmergePosition(CF_V2(DrawUI::half_w - 36 * 0.3f, objs[g.Player()].GetPosition().y));
 			RoomLoader::Instance().Load("FirstRoom");
 		}
+		if (objs.TryGetRegisteration(g.Player()) && objs[g.Player()].GetPosition().x > DrawUI::half_w) {
+			g.SetEmergePosition(CF_V2(-DrawUI::half_w + 36 * 0.3f, objs[g.Player()].GetPosition().y - 72.0f));
+			RoomLoader::Instance().Load("NextRoom");
+		}
 	}
 	void RoomUnload() override {
 		OUTPUT({ "TestRoom" }, "RoomUnload called.");

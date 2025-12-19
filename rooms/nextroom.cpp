@@ -213,8 +213,8 @@ public:
 	void RoomUpdate() override {
 		auto& g = GlobalPlayer::Instance();
 		if (objs.TryGetRegisteration(g.Player()) && objs[g.Player()].GetPosition().x < -DrawUI::half_w) {
-			g.SetEmergePosition(CF_V2(DrawUI::half_w - 36 * 0.3f, objs[g.Player()].GetPosition().y));
-			RoomLoader::Instance().Load("FirstRoom");
+			g.SetEmergePosition(CF_V2(DrawUI::half_w - 36 * 0.3f, objs[g.Player()].GetPosition().y + 72.0f));
+			RoomLoader::Instance().Load("EmptyRoom");
 		}
 		if (Input::IsKeyInState(CF_KEY_N, KeyState::Down)) {
 			GlobalPlayer::Instance().SetEmergePosition(CF_V2(-DrawUI::half_w + 36 * 1.5f, -DrawUI::half_h + 36 * 2));

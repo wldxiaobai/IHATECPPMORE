@@ -6,6 +6,7 @@
 #include "player_object.h"
 #include "backgroud.h"
 #include "block_object.h"
+#include "checkpoint.h"
 #include "end.h"
 
 class EndRoom : public BaseRoom {
@@ -31,8 +32,7 @@ public:
 		for (float x = -hw; x < hw; x += 36) {
 			objs.Create<BlockObject>(cf_v2(x, -hh), true);
 		}
-
-
+		objs.Create<Checkpoint>(cf_v2(- 18.0f, -hh + 36 * 1.0f));
 
 #if TESTER
 		auto test_token = objs.Create<Tester>();
@@ -51,4 +51,4 @@ public:
 	}
 };
 
-REGISTER_INITIAL_ROOM("EndRoom", EndRoom);
+REGISTER_ROOM("EndRoom", EndRoom);
