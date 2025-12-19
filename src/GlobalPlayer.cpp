@@ -108,7 +108,7 @@ void GlobalPlayer::Emerge() {
 void GlobalPlayer::Hurt() {
 	if (!objs.TryGetRegisteration(player_token)) return;
 	CF_V2 pos = objs[player_token].GetPosition();
-	int amt = 32;
+	int amt = 16;
 	float speed = 5.0f;
 	auto time_seed = static_cast<int>(std::chrono::steady_clock::now().time_since_epoch().count());
 	for (int i = 0; i < amt; i++) {

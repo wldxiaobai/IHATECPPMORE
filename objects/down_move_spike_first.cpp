@@ -28,9 +28,7 @@ void FirstDownMoveSpike::Start() {
 
 
 	//执行下移动作
-
 	m_act_seq.add(
-
 		static_cast<int>(0.2f * g_frame_rate),
 		[initial_pos, move_down_distance]
 		(BaseObject* obj, int current_frame, int total_frames)
@@ -55,8 +53,8 @@ void FirstDownMoveSpike::Update() {
 
 	CF_V2 pos = objs[player].GetPosition();
 
-	float min_x = 392.0f;
-	float max_x = 436.0f;
+	float min_x = 396.0f;
+	float max_x = 432.0f;
 	float min_y = -396.0f;
 	float max_y = -288.0f;
 
@@ -64,8 +62,6 @@ void FirstDownMoveSpike::Update() {
 		// 播放动作序列
 		if(!m_act_seq.is_playing()) m_act_seq.play(this);
 	}
-
-
 }
 
 void FirstDownMoveSpike::OnCollisionEnter(const ObjManager::ObjToken& other, const CF_Manifold& manifold) noexcept {
