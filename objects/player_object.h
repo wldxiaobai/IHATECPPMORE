@@ -5,6 +5,7 @@
 #include <unordered_map>
 
 #include "debug_config.h"
+#include "cute.h"
 
 class PlayerObject : public BaseObject {
 public:
@@ -24,6 +25,12 @@ private:
 	// 记录上一个checkpoint（或默认复活点) 的位置，用于玩家复活/传送使用
 	// -当前向量为默认位置：
 	CF_V2 respawn_point;
+	
+	// 音效资源
+	CF_Audio jump_sound_;
+	CF_Audio shoot_sound_;
+	CF_Audio double_jump_sound_;
+	CF_Audio land_sound_;
 };
 
 #if TESTER

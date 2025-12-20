@@ -23,6 +23,9 @@ Delegate<> main_thread_on_update;
 // 全局帧率（每秒帧数）
 int g_frame_rate = 50;
 
+// 背景音乐
+CF_Audio g_background_music;
+
 extern Delegate<> main_thread_on_update;
 
 namespace {
@@ -75,6 +78,14 @@ int main(int argc, char* argv[])
 	}
 	else {
 		RoomLoader::Instance().LoadInitial();
+	}
+
+	 //加载并播放背景音乐
+	g_background_music = cf_audio_load_wav("/audio/test_music_TheHappyTroll.wav");
+	if (g_background_music.id != 0) {
+		cf_music_play(g_background_music,0.5f);
+		cf_music_set_loop(true);
+		cf_music_set_volume(0.3f); // 设置音量为30%
 	}
 
 	// esc 键长按退出相关参数
@@ -163,6 +174,8 @@ int main(int argc, char* argv[])
 	objs.DestroyAll();
 	// 清理主线程更新委托
 	main_thread_on_update.clear();
+	// 销毁背景音乐资源
+	cf_audio_destroy(g_background_music);
 	// 销毁应用程序
 	Cute::destroy_app();
 	OUTPUT({ "Main" }, "----------Program End----------");
