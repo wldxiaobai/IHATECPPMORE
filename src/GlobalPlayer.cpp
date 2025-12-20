@@ -14,10 +14,12 @@ namespace fs = std::filesystem;
 constexpr char kSaveDir[] = "save";
 constexpr char kRespawnRecordFile[] = "respawn.record";
 
+// 预设好的存档目录路径
 fs::path MakeSaveDirectoryPath() {
 	return fs::current_path() / kSaveDir;
 }
 
+// 复活记录文件路径
 fs::path MakeRespawnRecordPath() {
 	return MakeSaveDirectoryPath() / kRespawnRecordFile;
 }
@@ -28,6 +30,12 @@ struct RespawnRecord {
 	std::string room_name;
 };
 
+//open：LoadRespawnRecordFromDisk 中 std::ifstream ifs(path, std::ios::in); 
+//		在文件存在的前提下构造了 ifstream，并通过 if (!ifs) 检查是否成功打开文件。
+//read：紧接着的 ifs >> flag、std::getline(ifs, record.room_name) 以及 
+//		ifs >> record.point.x >> record.point.y 分别从流中依次读取标志、房间名称和位置坐标。
+//close：ifs 离开作用域（函数返回或退出）时会自动调用析构函数关闭文件，
+//		所有路径都依赖析构完成关闭行为。
 std::optional<RespawnRecord> LoadRespawnRecordFromDisk() noexcept {
 	auto path = MakeRespawnRecordPath();
 	if (!fs::exists(path)) {
@@ -59,6 +67,10 @@ std::optional<RespawnRecord> LoadRespawnRecordFromDisk() noexcept {
 	return record;
 }
 
+//open：std::ofstream ofs(MakeRespawnRecordPath(), std::ios::trunc); 
+//		构造流并打开 respawn.record 文件，std::ios::trunc 清空旧内容。
+//write：随后三行 ofs << … 将标志、房间名和坐标依次写入流。
+//close：函数结束或异常跳出时，ofs 析构自动关闭文件（无需手动 close）。
 bool PersistRespawnRecordToDisk(bool has_record, const std::string& room_name, CF_V2 point) noexcept {
 	try {
 		auto dir = MakeSaveDirectoryPath();
@@ -81,6 +93,7 @@ bool PersistRespawnRecordToDisk(bool has_record, const std::string& room_name, C
 }
 }
 
+// 复活玩家到当前复活点
 void GlobalPlayer::Respawn() {
 	if (respawn_room != RoomLoader::Instance().GetCurrentRoom()) {
 		OUTPUT({ "GlobalPlayer::Respawn" }, "Warning: Respawning in a different room without loading it.");
@@ -93,6 +106,7 @@ void GlobalPlayer::Respawn() {
 	}
 }
 
+// 处理玩家从出现点或复活点返回游戏的逻辑
 void GlobalPlayer::Emerge() {
 	if (!emerge_pos.need_emerge) Respawn();
 	else if (!ObjManager::Instance().TryGetRegisteration(player_token)) {
@@ -108,7 +122,7 @@ void GlobalPlayer::Emerge() {
 void GlobalPlayer::Hurt() {
 	if (!objs.TryGetRegisteration(player_token)) return;
 	CF_V2 pos = objs[player_token].GetPosition();
-	int amt = 16;
+	int amt = 24;
 	float speed = 5.0f;
 	auto time_seed = static_cast<int>(std::chrono::steady_clock::now().time_since_epoch().count());
 	for (int i = 0; i < amt; i++) {
@@ -119,6 +133,7 @@ void GlobalPlayer::Hurt() {
 	objs.Destroy(player_token);
 }
 
+// 从磁盘加载复活点记录，若存在则更新成员变量并返回 true，否则返回 false
 bool GlobalPlayer::LoadSavedRespawn() noexcept {
 	if (auto record = LoadRespawnRecordFromDisk()) {
 		respawn_point = record->point;
@@ -137,6 +152,7 @@ bool GlobalPlayer::LoadSavedRespawn() noexcept {
 	return false;
 }
 
+// 将当前复活点记录保存到磁盘
 bool GlobalPlayer::PersistRespawnRecord() const noexcept {
 	return PersistRespawnRecordToDisk(has_record, respawn_room_name, respawn_point);
 }

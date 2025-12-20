@@ -28,26 +28,6 @@ bool ObjManager::IsValid(const ObjToken& token) const noexcept
     return e.alive && (e.generation == token.generation) && e.ptr;
 }
 
-// 为延迟创建预留 slot，如果有空闲索引则复用，否则在末尾追加新条目。
-// 目的：复用已释放的槽以减少内存增长与碎片，同时保证 index 的稳定性（旧 token 会因 generation 不匹配而失效）。
-uint32_t ObjManager::ReserveSlotForCreate() noexcept
-{
-    if (!free_indices_.empty()) {
-        uint32_t idx = free_indices_.back();
-        free_indices_.pop_back();
-        // 确保 slot 中的 unique_ptr 被重置，alive 标志置 false
-        Entry& e = objects_[idx];
-        e.ptr.reset();
-        e.alive = false;
-        e.skip_update_this_frame = false;
-        // generation 将在 CreateEntry/Delayed 时增加
-        return idx;
-    } else {
-        objects_.emplace_back();
-        return static_cast<uint32_t>(objects_.size() - 1);
-    }
-}
-
 // 将 unique_ptr<BaseObject> 纳入管理并立即启动（Start），但不直接扩展 objects_；
 // 对象被放入 pending_creates_，在 UpdateAll 的提交阶段合并到 objects_（安全点）。
 // 返回的 token.index 为 pending id（非真实 objects_ 索引），调用方应使用 TryGetRegisteration 查验或等待下一帧提交。
@@ -468,22 +448,6 @@ const BaseObject& ObjManager::operator[](const ObjToken& token) const
         throw std::out_of_range("ObjManager::operator[] const: token invalid or object not alive");
     }
     return *e.ptr;
-}
-
-// 按 tag 查询对象（找到含有对应Tag的第一个物体），并返回 token
-ObjManager::ObjToken ObjManager::FindTokensByTag(const std::string& tag) const noexcept
-{
-    ObjToken out;
-    for (uint32_t i = 0; i < objects_.size(); ++i) {
-        const Entry& e = objects_[i];
-        if (!e.alive || !e.ptr) continue;
-        // 直接调用 BaseObject::HasTag（noexcept）
-        if (e.ptr->HasTag(tag)) {
-            out = ObjToken( i, e.generation, true );
-            break;
-        }
-    }
-    return out;
 }
 
 size_t ObjManager::GetEstimatedMemoryUsageBytes() const noexcept

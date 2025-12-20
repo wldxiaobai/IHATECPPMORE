@@ -44,20 +44,7 @@ public:
     ObjToken Create(Args&&... args)
     {
         static_assert(std::is_base_of<BaseObject, T>::value, "T must derive from BaseObject");
-        return Create<T>([](T*) {}, std::forward<Args>(args)...);
-    }
-
-    // Create: 允许在构造后、Start() 前对对象进行初始化的版本，返回 PendingToken。
-    // 将第二个模板限制为只有当 initializer 可用于 `T*` 调用时才会参与重载决议。
-    template <typename T, typename Init, typename... Args>
-        requires std::is_invocable_v<std::decay_t<Init>, T*>
-    ObjToken Create(Init&& initializer, Args&&... args)
-    {
-        static_assert(std::is_base_of_v<BaseObject, T>, "T must derive from BaseObject");
         auto obj = std::make_unique<T>(std::forward<Args>(args)...);
-        if (initializer) {
-            std::forward<Init>(initializer)(static_cast<T*>(obj.get()));
-        }
         return CreateEntry(std::unique_ptr<BaseObject>(static_cast<BaseObject*>(obj.release())));
     }
 
@@ -102,11 +89,6 @@ public:
 
     size_t GetEstimatedMemoryUsageBytes() const noexcept;
 
-    // 标签查询方法
-    // 返回所有已合并并带有指定 tag 的 ObjToken（registered tokens）
-    // FindTokensByTag: 返回第一个仍在注册列表中的、拥有指定 tag 的对象 token。
-    ObjToken FindTokensByTag(const std::string& tag) const noexcept;
-
 private:
     ObjManager() noexcept;
     ~ObjManager() noexcept;
@@ -124,9 +106,6 @@ private:
     struct PendingCreate {
         std::unique_ptr<BaseObject> ptr;
     };
-
-    // 为延迟创建保留 slot，并返回可用索引（复用 free_indices_ 或在尾部追加）
-    uint32_t ReserveSlotForCreate() noexcept;
 
     // 内部立即销毁实现（按 index）。
     // - DestroyEntry 调用对象 OnDestroy、反注册 PhysicsSystem、清理映射并使 token 失效
