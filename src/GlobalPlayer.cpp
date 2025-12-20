@@ -7,6 +7,7 @@
 #include <fstream>
 #include <limits>
 #include <optional>
+#include <cute.h>
 
 namespace {
 namespace fs = std::filesystem;
@@ -131,6 +132,7 @@ void GlobalPlayer::Hurt() {
 		objs.Create<Blood>(pos, cf_rnd_range_float(&tweak, speed * 0.6f, speed * 1.2f) * v2math::get_dir(angle));
 	}
 	objs.Destroy(player_token);
+	cf_play_sound(cf_audio_load_wav("/audio/sound_die.WAV"), cf_sound_params_defaults());
 }
 
 // 从磁盘加载复活点记录，若存在则更新成员变量并返回 true，否则返回 false

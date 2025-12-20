@@ -38,10 +38,9 @@ void PlayerObject::Start()
 
 
 	// 加载音效资源
-	jump_sound_ = cf_audio_load_wav("/audio/sound_jump-[AudioTrimmer.com] (2).WAV");
+	jump_sound_ = cf_audio_load_wav("/audio/sound_jump.WAV");
 	shoot_sound_ = cf_audio_load_wav("/audio/sound_shoot.WAV");
-	double_jump_sound_ = cf_audio_load_wav("/audio/sound_jump-[AudioTrimmer.com] (2).WAV");
-	land_sound_ = cf_audio_load_wav("/audio/sound_fall.WAV");
+	double_jump_sound_ = cf_audio_load_wav("/audio/sound_doublejump.WAV");
 
 }
 
@@ -80,37 +79,21 @@ void PlayerObject::Update()
         cf_play_sound(shoot_sound_, cf_sound_params_defaults());
     }
 
-    if (Input::IsKeyInState(CF_KEY_SPACE, KeyState::Down)) {
-        jump_input_timer = jump_buffer_window;
-
-
-    }
-
-    auto try_consume_jump_buffer = [&]() -> bool {
-        if (jump_input_timer <= 0.0f || !(grounded || double_jump_ready)) {
-            return false;
-        }
+    if (Input::IsKeyInState(CF_KEY_SPACE, KeyState::Down) && (grounded || double_jump_ready)) {
         if (!grounded) {
             double_jump_ready = false;
             grounded = true; // 允许二段跳
+            cf_play_sound(double_jump_sound_, cf_sound_params_defaults());
         }
-        
-        // 播放跳跃音效
-        if (double_jump_ready) {
+        else {
             cf_play_sound(jump_sound_, cf_sound_params_defaults());
-        } else {
-           /* cf_play_sound(double_jump_sound_, cf_sound_params_defaults());*/
         }
-        
+
         SetVelocityY(double_jump_ready ? 8.25f : 7.9f);
         grounded = false;
-        jump_input_timer = 0.0f;
-        return true;
+    }
 
-    };
-
-    const bool jumped = try_consume_jump_buffer();
-    if (!jumped && Input::IsKeyInState(CF_KEY_SPACE, KeyState::Up)) {
+    if (Input::IsKeyInState(CF_KEY_SPACE, KeyState::Up)) {
         float vy = GetVelocity().y;
         if (vy > 0) {
             SetVelocityY(vy * 0.25f);
@@ -125,11 +108,6 @@ void PlayerObject::Update()
     if (cur_vel_jump.y < max_fall_speed) {
         cur_vel_jump.y = max_fall_speed;
         SetVelocity(cur_vel_jump);
-    }
-
-    jump_input_timer -= frame_seconds;
-    if (jump_input_timer < 0.0f) {
-        jump_input_timer = 0.0f;
     }
 }
 

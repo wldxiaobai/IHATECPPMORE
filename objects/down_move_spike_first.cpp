@@ -34,7 +34,8 @@ void FirstDownMoveSpike::Start() {
 		(BaseObject* obj, int current_frame, int total_frames)
 		{
 			if (!obj) return;
-
+			if(current_frame == 0)
+				cf_play_sound(cf_audio_load_wav("/audio/sound_fall.wav"), cf_sound_params_defaults());
 			float t = static_cast<float>(current_frame) / static_cast<float>(total_frames - 1);
 			if (total_frames == 1) t = 1.0f;
 

@@ -85,7 +85,7 @@ int main(int argc, char* argv[])
 	if (g_background_music.id != 0) {
 		cf_music_play(g_background_music,0.5f);
 		cf_music_set_loop(true);
-		cf_music_set_volume(0.3f); // 设置音量为30%
+		cf_music_set_volume(0.6f); // 设置音量为30%
 	}
 
 	// esc 键长按退出相关参数

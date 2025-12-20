@@ -21,7 +21,6 @@ public:
 private:
 	bool grounded = false;
 	bool double_jump_ready = true;
-	float jump_input_timer = 0.0f;
 	// 记录上一个checkpoint（或默认复活点) 的位置，用于玩家复活/传送使用
 	// -当前向量为默认位置：
 	CF_V2 respawn_point;
@@ -30,7 +29,6 @@ private:
 	CF_Audio jump_sound_;
 	CF_Audio shoot_sound_;
 	CF_Audio double_jump_sound_;
-	CF_Audio land_sound_;
 };
 
 #if TESTER
